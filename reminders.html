@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مدیریت یادآوری‌ها - CRM فارسی</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Persian Fonts -->
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vazirmatn@33.0.3/Vazirmatn-font-face.min.css" rel="stylesheet">
+    
+    <!-- Animation Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+    
+    <!-- Custom Styles -->
+    <style>
+        :root {
+            --royal-blue: #1e3a8a;
+            --royal-gold: #d4af37;
+            --dark-bg: #0a0a0a;
+            --card-bg: #1f2937;
+        }
+        
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background: var(--dark-bg);
+            color: #ffffff;
+        }
+        
+        .card-royal {
+            background: var(--card-bg);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .card-royal:hover {
+            border-color: var(--royal-gold);
+            box-shadow: 0 20px 40px rgba(212, 175, 55, 0.2);
+            transform: translateY(-4px);
+        }
+        
+        .btn-royal {
+            background: linear-gradient(135deg, var(--royal-blue) 0%, #3b82f6 100%);
+            border: 1px solid var(--royal-gold);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-royal:hover {
+            background: linear-gradient(135deg, #1e40af 0%, var(--royal-blue) 100%);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .text-gold {
+            color: var(--royal-gold);
+        }
+        
+        .nav-glass {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+        }
+        
+        .reminder-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .reminder-card:hover {
+            border-color: var(--royal-gold);
+            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.2);
+        }
+        
+        .reminder-card.overdue {
+            border-color: rgba(239, 68, 68, 0.5);
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.05) 100%);
+        }
+        
+        .reminder-card.today {
+            border-color: rgba(245, 158, 11, 0.5);
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%);
+        }
+        
+        .reminder-card.upcoming {
+            border-color: rgba(16, 185, 129, 0.5);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%);
+        }
+        
+        .form-input {
+            background: var(--card-bg);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .form-input:focus {
+            border-color: var(--royal-gold);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+        }
+        
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .status-active {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        
+        .status-completed {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        
+        .status-cancelled {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        
+        .type-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .type-call {
+            background: rgba(99, 102, 241, 0.2);
+            color: #6366f1;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+        }
+        
+        .type-meeting {
+            background: rgba(168, 85, 247, 0.2);
+            color: #a855f7;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+        }
+        
+        .type-task {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+        
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+        }
+        
+        .calendar-container {
+            background: var(--card-bg);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 12px;
+        }
+        
+        .calendar-day {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .calendar-day:hover {
+            background: rgba(212, 175, 55, 0.2);
+        }
+        
+        .calendar-day.today {
+            background: var(--royal-gold);
+            color: #000;
+            font-weight: bold;
+        }
+        
+        .calendar-day.has-reminder {
+            background: rgba(59, 130, 246, 0.3);
+            position: relative;
+        }
+        
+        .calendar-day.has-reminder::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 6px;
+            height: 6px;
+            background: var(--royal-gold);
+            border-radius: 50%;
+        }
+        
+        .table-row:hover {
+            background: rgba(212, 175, 55, 0.1);
+        }
+        
+        .notification-permission {
+            background: linear-gradient(135deg, rgba(30, 58, 138, 0.2) 0%, rgba(212, 175, 55, 0.2) 100%);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Background Canvas for Particles -->
+    <div id="background-canvas"></div>
+    
+    <!-- Navigation Header -->
+    <nav class="nav-glass fixed top-0 left-0 right-0 z-40">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex items-center space-x-4">
+                    <div class="text-2xl font-bold text-gold">💎 CRM فارسی</div>
+                </div>
+                
+                <!-- Search Bar -->
+                <div class="flex-1 max-w-md mx-8">
+                    <div class="relative">
+                        <input 
+                            type="text" 
+                            id="reminder-search"
+                            placeholder="جستجوی یادآوری..."
+                            class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 pr-10 text-white placeholder-gray-400 focus:border-yellow-400 focus:outline-none"
+                        >
+                        <i class="fas fa-search absolute right-3 top-3 text-gray-400"></i>
+                    </div>
+                </div>
+                
+                <!-- Date/Time Display -->
+                <div class="flex items-center space-x-6 text-sm">
+                    <div class="text-center">
+                        <div data-persian-date class="text-gold font-medium"></div>
+                        <div data-persian-time class="text-blue-300"></div>
+                    </div>
+                    
+                    <!-- User Avatar -->
+                    <div class="flex items-center space-x-2">
+                        <img src="resources/user-avatar.jpg" alt="کاربر" class="w-8 h-8 rounded-full border-2 border-yellow-400">
+                        <span class="hidden md:block">مدیر سیستم</span>
+                    </div>
+                    
+                    <!-- Menu Toggle -->
+                    <button id="menu-toggle" class="p-2 rounded-lg hover:bg-gray-700 transition-colors">
+                        <i class="fas fa-bars text-gold"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Side Menu -->
+    <div id="side-menu" class="fixed top-0 right-0 h-full w-64 bg-gray-900 transform translate-x-full transition-transform duration-300 z-50">
+        <div class="p-4">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-bold text-gold">منو</h3>
+                <button id="menu-close" class="p-2 hover:bg-gray-700 rounded-lg">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <nav class="space-y-2">
+                <a href="index.html" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-home"></i>
+                    <span>صفحه اصلی</span>
+                </a>
+                <a href="customers.html" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-users"></i>
+                    <span>مشتریان</span>
+                </a>
+                <a href="sales.html" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-chart-line"></i>
+                    <span>فروش‌ها</span>
+                </a>
+                <a href="accounts.html" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-calculator"></i>
+                    <span>حساب‌ها</span>
+                </a>
+                <a href="reminders.html" class="flex items-center space-x-3 p-3 rounded-lg bg-blue-600 text-white">
+                    <i class="fas fa-bell"></i>
+                    <span>یادآوری‌ها</span>
+                </a>
+                <a href="dashboard.html" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>داشبورد</span>
+                </a>
+            </nav>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <main class="pt-20">
+        <!-- Page Header -->
+        <section class="py-8">
+            <div class="container mx-auto px-4">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                    <div class="mb-4 md:mb-0">
+                        <h1 class="text-3xl font-bold text-gold mb-2">
+                            <i class="fas fa-bell ml-2"></i>
+                            مدیریت یادآوری‌ها
+                        </h1>
+                        <p class="text-gray-400">ثبت و پیگیری یادآوری‌ها و قرار ملاقات‌ها</p>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <!-- Notification Permission -->
+                        <button onclick="requestNotificationPermission()" id="notification-btn" class="notification-permission px-4 py-2 rounded-lg font-medium text-sm">
+                            <i class="fas fa-bell ml-2"></i>
+                            فعال‌سازی اعلان‌ها
+                        </button>
+                        
+                        <!-- Add Reminder Button -->
+                        <button onclick="window.crmApp.showModal('add-reminder-modal')" class="btn-royal px-6 py-2 rounded-lg font-medium">
+                            <i class="fas fa-plus ml-2"></i>
+                            یادآوری جدید
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Reminders Summary -->
+        <section class="py-4 bg-gray-900">
+            <div class="container mx-auto px-4">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="card-royal p-6 rounded-xl">
+                        <div class="flex items-center">
+                            <div class="text-3xl text-blue-400 mr-4">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-bold text-white" id="total-reminders">-</div>
+                                <div class="text-gray-400 text-sm">کل یادآوری‌ها</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card-royal p-6 rounded-xl">
+                        <div class="flex items-center">
+                            <div class="text-3xl text-green-400 mr-4">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-bold text-white" id="completed-reminders">-</div>
+                                <div class="text-gray-400 text-sm">تکمیل شده</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card-royal p-6 rounded-xl">
+                        <div class="flex items-center">
+                            <div class="text-3xl text-yellow-400 mr-4">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-bold text-white" id="today-reminders">-</div>
+                                <div class="text-gray-400 text-sm">امروز</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card-royal p-6 rounded-xl">
+                        <div class="flex items-center">
+                            <div class="text-3xl text-red-400 mr-4">
+                                <i class="fas fa-times-circle"></i>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-bold text-white" id="overdue-reminders">-</div>
+                                <div class="text-gray-400 text-sm">سررسید گذشته</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Calendar and Filters -->
+        <section class="py-8">
+            <div class="container mx-auto px-4">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Calendar -->
+                    <div class="lg:col-span-2">
+                        <div class="calendar-container p-6">
+                            <div class="flex items-center justify-between mb-6">
+                                <h3 class="text-xl font-semibold text-gold">
+                                    <i class="fas fa-calendar-alt ml-2"></i>
+                                    تقویم یادآوری‌ها
+                                </h3>
+                                <div class="flex items-center space-x-2">
+                                    <button onclick="previousMonth()" class="p-2 hover:bg-gray-700 rounded-lg transition-colors">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                    <span id="current-month" class="text-white font-medium px-4"></span>
+                                    <button onclick="nextMonth()" class="p-2 hover:bg-gray-700 rounded-lg transition-colors">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Calendar Grid -->
+                            <div class="grid grid-cols-7 gap-2 mb-4">
+                                <div class="text-center text-gray-400 font-medium py-2">ش</div>
+                                <div class="text-center text-gray-400 font-medium py-2">ی</div>
+                                <div class="text-center text-gray-400 font-medium py-2">د</div>
+                                <div class="text-center text-gray-400 font-medium py-2">س</div>
+                                <div class="text-center text-gray-400 font-medium py-2">چ</div>
+                                <div class="text-center text-gray-400 font-medium py-2">پ</div>
+                                <div class="text-center text-gray-400 font-medium py-2">ج</div>
+                            </div>
+                            
+                            <div id="calendar-grid" class="grid grid-cols-7 gap-2">
+                                <!-- Calendar days will be generated here -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Filters and Quick Actions -->
+                    <div class="space-y-6">
+                        <!-- Filters -->
+                        <div class="card-royal p-6 rounded-xl">
+                            <h3 class="text-lg font-semibold text-gold mb-4">
+                                <i class="fas fa-filter ml-2"></i>
+                                فیلترها
+                            </h3>
+                            
+                            <div class="space-y-4">
+                                <!-- Filter by Type -->
+                                <div>
+                                    <label class="block text-sm text-gray-400 mb-2">نوع یادآوری</label>
+                                    <select id="type-filter" class="form-input w-full rounded-lg px-3 py-2 text-white focus:outline-none">
+                                        <option value="">همه انواع</option>
+                                        <option value="call">تماس</option>
+                                        <option value="meeting">قرار ملاقات</option>
+                                        <option value="task">کار</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- Filter by Status -->
+                                <div>
+                                    <label class="block text-sm text-gray-400 mb-2">وضعیت</label>
+                                    <select id="status-filter" class="form-input w-full rounded-lg px-3 py-2 text-white focus:outline-none">
+                                        <option value="">همه وضعیت‌ها</option>
+                                        <option value="active">فعال</option>
+                                        <option value="completed">تکمیل شده</option>
+                                        <option value="cancelled">لغو شده</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- Filter by Customer -->
+                                <div>
+                                    <label class="block text-sm text-gray-400 mb-2">مشتری</label>
+                                    <select id="customer-filter" class="form-input w-full rounded-lg px-3 py-2 text-white focus:outline-none">
+                                        <option value="">همه مشتری‌ها</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- Clear Filters -->
+                                <button onclick="clearFilters()" class="w-full bg-gray-600 hover:bg-gray-500 text-white py-2 rounded-lg transition-colors">
+                                    <i class="fas fa-times ml-2"></i>
+                                    پاک کردن فیلترها
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Quick Actions -->
+                        <div class="card-royal p-6 rounded-xl">
+                            <h3 class="text-lg font-semibold text-gold mb-4">
+                                <i class="fas fa-bolt ml-2"></i>
+                                دسترسی سریع
+                            </h3>
+                            
+                            <div class="space-y-3">
+                                <button onclick="showTodayReminders()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition-colors">
+                                    <i class="fas fa-calendar-day ml-2"></i>
+                                    یادآوری‌های امروز
+                                </button>
+                                
+                                <button onclick="showOverdueReminders()" class="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg transition-colors">
+                                    <i class="fas fa-exclamation-triangle ml-2"></i>
+                                    یادآوری‌های سررسید
+                                </button>
+                                
+                                <button onclick="showUpcomingReminders()" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg transition-colors">
+                                    <i class="fas fa-clock ml-2"></i>
+                                    یادآوری‌های آینده
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Reminders List -->
+        <section class="py-8">
+            <div class="container mx-auto px-4">
+                <div class="card-royal rounded-xl overflow-hidden">
+                    <div class="p-6 border-b border-gray-700">
+                        <h3 class="text-xl font-semibold text-gold">
+                            <i class="fas fa-list ml-2"></i>
+                            لیست یادآوری‌ها
+                        </h3>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-800">
+                                <tr>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">تاریخ و زمان</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">عنوان</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">مشتری</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">نوع</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">وضعیت</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">عملیات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reminders-table-body" class="divide-y divide-gray-700">
+                                <!-- Table rows will be dynamically generated -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Empty State -->
+                <div id="empty-state" class="hidden text-center py-12">
+                    <div class="text-6xl text-gray-600 mb-4">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-400 mb-2">هیچ یادآوری یافت نشد</h3>
+                    <p class="text-gray-500 mb-6">برای شروع، یادآوری جدیدی ایجاد کنید</p>
+                    <button onclick="window.crmApp.showModal('add-reminder-modal')" class="btn-royal px-6 py-3 rounded-lg font-medium">
+                        <i class="fas fa-plus ml-2"></i>
+                        ایجاد اولین یادآوری
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <!-- Add Reminder Modal -->
+    <div id="add-reminder-modal" class="modal fixed inset-0 modal-overlay z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="modal-content bg-gray-800 rounded-xl p-6 w-full max-w-md">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-2xl font-bold text-gold">ایجاد یادآوری جدید</h3>
+                    <button class="modal-close text-gray-400 hover:text-white">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <form id="add-reminder-form" class="space-y-4">
+                    <!-- Customer Selection -->
+                    <div>
+                        <label class="block text-sm font-medium mb-2">مشتری (اختیاری)</label>
+                        <select name="customerId" class="form-input w-full rounded-lg px-3 py-2 text-white focus:outline-none">
+                            <option value="">بدون مشتری</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Reminder Type -->
+                    <div>
+                        <label class="block text-sm font-medium mb-2">نوع یادآوری</label>
+                        <select name="type" required class="form-input w-full rounded-lg px-3 py-2 text-white focus:outline-none">
+                            <option value="">انتخاب نوع...</option>
+                            <option value="call">تماس تلفنی</option>
+                            <option value="meeting">قرار ملاقات</option>
+                            <option value="task">انجام کار</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Title -->
+                    <div>
+                        <label class="block text-sm font-medium mb-2">عنوان</label>
+                        <input type="text" name="title" required class="form-input w-full rounded-lg px-3 py-2 text-white focus:outline-none" placeholder="مثال: تماس با مشتری VIP">
+                    </div>
+                    
+                    <!-- Date and Time -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">تاریخ</label>
+                            <input type="date" name="date" required class="form-input w-full rounded-lg px-3 py-2 text-white focus:outline-none">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium mb-2">زمان</label>
+                            <input type="time" name="time" required class="form-input w-full rounded-lg px-3 py-2 text-white focus:outline-none">
+                        </div>
+                    </div>
+                    
+                    <!-- Notes -->
+                    <div>
+                        <label class="block text-sm font-medium mb-2">یادداشت‌ها (اختیاری)</label>
+                        <textarea name="notes" rows="3" class="form-input w-full rounded-lg px-3 py-2 text-white focus:outline-none" placeholder="توضیحات تکمیلی..."></textarea>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="flex space-x-3 pt-4">
+                        <button type="submit" class="btn-royal flex-1 py-3 rounded-lg font-medium">
+                            <i class="fas fa-save ml-2"></i>
+                            ایجاد یادآوری
+                        </button>
+                        <button type="button" class="modal-close bg-gray-600 flex-1 py-3 rounded-lg font-medium hover:bg-gray-500 transition-colors">
+                            انصراف
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="bg-gray-900 border-t border-gray-700 py-8">
+        <div class="container mx-auto px-4 text-center">
+            <div class="text-gold mb-2">💎 CRM فارسی - نسخه 1.0</div>
+            <div class="text-gray-400 text-sm">
+                © 1403 تمامی حقوق محفوظ است - طراحی شده با ❤️ برای کسب‌وکارهای فارسی‌زبان
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Scripts -->
+    <script src="main.js"></script>
+    
+    <script>
+        let reminders = [];
+        let filteredReminders = [];
+        let customers = [];
+        let currentCalendarDate = new Date();
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', async function() {
+            await loadData();
+            initializeEventListeners();
+            renderReminders();
+            updateRemindersSummary();
+            renderCalendar();
+        });
+        
+        // Load data from storage
+        async function loadData() {
+            try {
+                reminders = await window.PersianCRM.storage.getReminders();
+                customers = await window.PersianCRM.storage.getCustomers();
+                filteredReminders = [...reminders];
+                
+                // Add sample reminders if none exist
+                if (reminders.length === 0) {
+                    await addSampleReminders();
+                    reminders = await window.PersianCRM.storage.getReminders();
+                    filteredReminders = [...reminders];
+                }
+                
+                // Populate customer selects
+                populateCustomerSelects();
+            } catch (error) {
+                console.error('Error loading data:', error);
+                window.PersianCRM.showToast('خطا در بارگذاری اطلاعات', 'error');
+            }
+        }
+        
+        // Add sample reminders for demo
+        async function addSampleReminders() {
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+            
+            const sampleReminders = [
+                {
+                    customerId: customers[0]?.id || '',
+                    type: 'call',
+                    title: 'تماس پیگیری با مشتری VIP',
+                    when: tomorrow.toISOString(),
+                    status: 'active',
+                    notes: 'پیگیری سفارش جدید'
+                },
+                {
+                    customerId: customers[1]?.id || '',
+                    type: 'meeting',
+                    title: 'قرار ملاقات فروش',
+                    when: new Date(today.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+                    status: 'active',
+                    notes: 'ارائه محصولات جدید'
+                },
+                {
+                    customerId: customers[2]?.id || '',
+                    type: 'task',
+                    title: 'آماده‌سازی پیش‌فاکتور',
+                    when: yesterday.toISOString(),
+                    status: 'active',
+                    notes: 'برای مشتری جدید'
+                },
+                {
+                    type: 'call',
+                    title: 'تماس با تامین‌کننده',
+                    when: new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+                    status: 'active',
+                    notes: 'استعلام قیمت جدید'
+                }
+            ];
+            
+            for (const reminder of sampleReminders) {
+                await window.PersianCRM.storage.addReminder(reminder);
+            }
+        }
+        
+        // Populate customer selects
+        function populateCustomerSelects() {
+            const selects = document.querySelectorAll('select[name="customerId"]');
+            
+            selects.forEach(select => {
+                // Clear existing options except first
+                const firstOption = select.options[0];
+                select.innerHTML = '';
+                select.appendChild(firstOption);
+                
+                // Add customers
+                customers.forEach(customer => {
+                    const option = document.createElement('option');
+                    option.value = customer.id;
+                    option.textContent = `${customer.firstName} ${customer.lastName}`;
+                    select.appendChild(option);
+                });
+            });
+        }
+        
+        // Initialize event listeners
+        function initializeEventListeners() {
+            // Search
+            document.getElementById('reminder-search').addEventListener('input', handleSearch);
+            
+            // Filters
+            document.getElementById('type-filter').addEventListener('change', applyFilters);
+            document.getElementById('status-filter').addEventListener('change', applyFilters);
+            document.getElementById('customer-filter').addEventListener('change', applyFilters);
+            
+            // Add reminder form
+            document.getElementById('add-reminder-form').addEventListener('submit', handleAddReminder);
+            
+            // Menu close
+            document.getElementById('menu-close').addEventListener('click', function() {
+                document.getElementById('side-menu').classList.add('translate-x-full');
+            });
+            
+            // Set default date and time for form
+            setDefaultDateTime();
+        }
+        
+        // Set default date and time for form
+        function setDefaultDateTime() {
+            const now = new Date();
+            const dateInput = document.querySelector('input[name="date"]');
+            const timeInput = document.querySelector('input[name="time"]');
+            
+            if (dateInput) {
+                dateInput.value = now.toISOString().split('T')[0];
+            }
+            
+            if (timeInput) {
+                const hours = now.getHours().toString().padStart(2, '0');
+                const minutes = now.getMinutes().toString().padStart(2, '0');
+                timeInput.value = `${hours}:${minutes}`;
+            }
+        }
+        
+        // Handle search
+        function handleSearch(e) {
+            const query = e.target.value.toLowerCase();
+            
+            if (query === '') {
+                filteredReminders = [...reminders];
+            } else {
+                filteredReminders = reminders.filter(reminder =>
+                    reminder.title.toLowerCase().includes(query) ||
+                    (reminder.notes && reminder.notes.toLowerCase().includes(query))
+                );
+            }
+            
+            applyFilters();
+        }
+        
+        // Apply filters
+        function applyFilters() {
+            let filtered = [...filteredReminders];
+            
+            // Type filter
+            const typeFilter = document.getElementById('type-filter').value;
+            if (typeFilter) {
+                filtered = filtered.filter(reminder => reminder.type === typeFilter);
+            }
+            
+            // Status filter
+            const statusFilter = document.getElementById('status-filter').value;
+            if (statusFilter) {
+                filtered = filtered.filter(reminder => reminder.status === statusFilter);
+            }
+            
+            // Customer filter
+            const customerFilter = document.getElementById('customer-filter').value;
+            if (customerFilter) {
+                filtered = filtered.filter(reminder => reminder.customerId === customerFilter);
+            }
+            
+            filteredReminders = filtered;
+            renderReminders();
+            updateRemindersSummary();
+        }
+        
+        // Clear filters
+        function clearFilters() {
+            document.getElementById('reminder-search').value = '';
+            document.getElementById('type-filter').value = '';
+            document.getElementById('status-filter').value = '';
+            document.getElementById('customer-filter').value = '';
+            
+            filteredReminders = [...reminders];
+            renderReminders();
+            updateRemindersSummary();
+        }
+        
+        // Render reminders table
+        function renderReminders() {
+            const tbody = document.getElementById('reminders-table-body');
+            tbody.innerHTML = '';
+            
+            if (filteredReminders.length === 0) {
+                document.getElementById('empty-state').classList.remove('hidden');
+                return;
+            }
+            
+            document.getElementById('empty-state').classList.add('hidden');
+            
+            // Sort by date (newest first)
+            const sortedReminders = [...filteredReminders].sort((a, b) => {
+                return new Date(b.when) - new Date(a.when);
+            });
+            
+            sortedReminders.forEach(reminder => {
+                const customer = reminder.customerId ? customers.find(c => c.id === reminder.customerId) : null;
+                const customerName = customer ? `${customer.firstName} ${customer.lastName}` : 'بدون مشتری';
+                
+                const reminderDate = new Date(reminder.when);
+                const now = new Date();
+                const isOverdue = reminderDate < now && reminder.status === 'active';
+                const isToday = reminderDate.toDateString() === now.toDateString();
+                
+                const typeClass = `type-${reminder.type}`;
+                const typeText = {
+                    'call': 'تماس',
+                    'meeting': 'قرار ملاقات',
+                    'task': 'کار'
+                }[reminder.type];
+                
+                const statusClass = `status-${reminder.status}`;
+                const statusText = {
+                    'active': 'فعال',
+                    'completed': 'تکمیل شده',
+                    'cancelled': 'لغو شده'
+                }[reminder.status];
+                
+                const row = document.createElement('tr');
+                row.className = `table-row hover:bg-gray-800 transition-colors ${isOverdue ? 'text-red-400' : isToday ? 'text-yellow-400' : ''}`;
+                
+                const formattedDate = reminderDate.toLocaleDateString('fa-IR');
+                const formattedTime = reminderDate.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
+                
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <div>${formattedDate}</div>
+                        <div class="text-gray-400 text-xs">${formattedTime}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
+                        ${reminder.title}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                        ${customerName}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="type-badge ${typeClass}">
+                            ${typeText}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="status-badge ${statusClass}">
+                            ${statusText}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div class="flex space-x-2">
+                            ${reminder.status === 'active' ? `
+                                <button onclick="completeReminder('${reminder.id}')" class="text-green-400 hover:text-green-300" title="تکمیل">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                            ` : ''}
+                            <button onclick="editReminder('${reminder.id}')" class="text-yellow-400 hover:text-yellow-300" title="ویرایش">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="deleteReminder('${reminder.id}')" class="text-red-400 hover:text-red-300" title="حذف">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+        
+        // Update reminders summary
+        function updateRemindersSummary() {
+            const total = filteredReminders.length;
+            const completed = filteredReminders.filter(r => r.status === 'completed').length;
+            const active = filteredReminders.filter(r => r.status === 'active').length;
+            
+            const today = new Date();
+            const todayReminders = filteredReminders.filter(r => {
+                const reminderDate = new Date(r.when);
+                return reminderDate.toDateString() === today.toDateString() && r.status === 'active';
+            }).length;
+            
+            const overdueReminders = filteredReminders.filter(r => {
+                const reminderDate = new Date(r.when);
+                return reminderDate < today && r.status === 'active';
+            }).length;
+            
+            document.getElementById('total-reminders').textContent = 
+                window.PersianCRM.utils.toPersianNumbers(total.toString());
+            document.getElementById('completed-reminders').textContent = 
+                window.PersianCRM.utils.toPersianNumbers(completed.toString());
+            document.getElementById('today-reminders').textContent = 
+                window.PersianCRM.utils.toPersianNumbers(todayReminders.toString());
+            document.getElementById('overdue-reminders').textContent = 
+                window.PersianCRM.utils.toPersianNumbers(overdueReminders.toString());
+        }
+        
+        // Render calendar
+        function renderCalendar() {
+            const grid = document.getElementById('calendar-grid');
+            const monthElement = document.getElementById('current-month');
+            
+            // Set month name
+            const monthNames = [
+                'فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور',
+                'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'
+            ];
+            
+            // Convert to Jalali month (simplified)
+            const jalaliMonth = currentCalendarDate.getMonth() + 1;
+            const jalaliYear = currentCalendarDate.getFullYear() + 621;
+            
+            monthElement.textContent = `${monthNames[jalaliMonth - 1]} ${jalaliYear}`;
+            
+            // Clear grid
+            grid.innerHTML = '';
+            
+            // Get first day of month and number of days
+            const firstDay = new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth(), 1);
+            const lastDay = new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth() + 1, 0);
+            const startDay = firstDay.getDay();
+            const daysInMonth = lastDay.getDate();
+            
+            // Add empty cells for days before month starts
+            for (let i = 0; i < startDay; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.className = 'calendar-day text-gray-600';
+                grid.appendChild(emptyDay);
+            }
+            
+            // Add days of month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day text-white';
+                dayElement.textContent = window.PersianCRM.utils.toPersianNumbers(day.toString());
+                
+                // Check if today
+                const today = new Date();
+                if (currentCalendarDate.getFullYear() === today.getFullYear() &&
+                    currentCalendarDate.getMonth() === today.getMonth() &&
+                    day === today.getDate()) {
+                    dayElement.classList.add('today');
+                }
+                
+                // Check if has reminders
+                const dayDate = new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth(), day);
+                const hasReminder = filteredReminders.some(r => {
+                    const reminderDate = new Date(r.when);
+                    return reminderDate.toDateString() === dayDate.toDateString();
+                });
+                
+                if (hasReminder) {
+                    dayElement.classList.add('has-reminder');
+                }
+                
+                // Add click handler
+                dayElement.addEventListener('click', () => {
+                    showRemindersForDate(dayDate);
+                });
+                
+                grid.appendChild(dayElement);
+            }
+        }
+        
+        // Show reminders for specific date
+        function showRemindersForDate(date) {
+            const dateReminders = filteredReminders.filter(r => {
+                const reminderDate = new Date(r.when);
+                return reminderDate.toDateString() === date.toDateString();
+            });
+            
+            if (dateReminders.length > 0) {
+                const reminderTitles = dateReminders.map(r => r.title).join('\n');
+                alert(`یادآوری‌های ${date.toLocaleDateString('fa-IR')}:\n\n${reminderTitles}`);
+            } else {
+                alert('یادآوری‌ای برای این تاریخ وجود ندارد');
+            }
+        }
+        
+        // Calendar navigation
+        function previousMonth() {
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
+            renderCalendar();
+        }
+        
+        function nextMonth() {
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
+            renderCalendar();
+        }
+        
+        // Quick filter functions
+        function showTodayReminders() {
+            const today = new Date();
+            filteredReminders = reminders.filter(r => {
+                const reminderDate = new Date(r.when);
+                return reminderDate.toDateString() === today.toDateString() && r.status === 'active';
+            });
+            renderReminders();
+            updateRemindersSummary();
+        }
+        
+        function showOverdueReminders() {
+            const now = new Date();
+            filteredReminders = reminders.filter(r => {
+                const reminderDate = new Date(r.when);
+                return reminderDate < now && r.status === 'active';
+            });
+            renderReminders();
+            updateRemindersSummary();
+        }
+        
+        function showUpcomingReminders() {
+            const now = new Date();
+            const nextWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+            
+            filteredReminders = reminders.filter(r => {
+                const reminderDate = new Date(r.when);
+                return reminderDate >= now && reminderDate <= nextWeek && r.status === 'active';
+            });
+            renderReminders();
+            updateRemindersSummary();
+        }
+        
+        // Request notification permission
+        function requestNotificationPermission() {
+            if ('Notification' in window) {
+                Notification.requestPermission().then(function(permission) {
+                    if (permission === 'granted') {
+                        window.PersianCRM.showToast('اعلان‌ها فعال شدند', 'success');
+                        document.getElementById('notification-btn').textContent = '✓ اعلان‌ها فعال هستند';
+                        document.getElementById('notification-btn').classList.add('bg-green-600');
+                        
+                        // Schedule notifications for active reminders
+                        scheduleNotifications();
+                    } else {
+                        window.PersianCRM.showToast('لطفاً اجازه اعلان‌ها را بدهید', 'warning');
+                    }
+                });
+            } else {
+                window.PersianCRM.showToast('مرورگر شما از اعلان‌ها پشتیبانی نمی‌کند', 'error');
+            }
+        }
+        
+        // Schedule notifications for reminders
+        function scheduleNotifications() {
+            if ('Notification' in window && Notification.permission === 'granted') {
+                reminders.forEach(reminder => {
+                    if (reminder.status === 'active') {
+                        const reminderDate = new Date(reminder.when);
+                        const now = new Date();
+                        
+                        if (reminderDate > now) {
+                            const timeUntilReminder = reminderDate.getTime() - now.getTime();
+                            
+                            setTimeout(() => {
+                                new Notification(`یادآوری: ${reminder.title}`, {
+                                    body: reminder.notes || 'زمان انجام این کار فرا رسیده است',
+                                    icon: '/resources/user-avatar.jpg'
+                                });
+                            }, timeUntilReminder);
+                        }
+                    }
+                });
+            }
+        }
+        
+        // Handle add reminder form
+        async function handleAddReminder(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const customerId = formData.get('customerId');
+            const type = formData.get('type');
+            const title = formData.get('title');
+            const date = formData.get('date');
+            const time = formData.get('time');
+            const notes = formData.get('notes');
+            
+            // Combine date and time
+            const when = new Date(`${date}T${time}`);
+            
+            const reminder = {
+                customerId: customerId || null,
+                type,
+                title,
+                when: when.toISOString(),
+                status: 'active',
+                notes
+            };
+            
+            try {
+                await window.PersianCRM.storage.addReminder(reminder);
+                window.PersianCRM.showToast('یادآوری با موفقیت ایجاد شد', 'success');
+                window.crmApp.hideModal('add-reminder-modal');
+                e.target.reset();
+                setDefaultDateTime();
+                
+                // Reload data
+                await loadData();
+                renderReminders();
+                updateRemindersSummary();
+                renderCalendar();
+                
+                // Schedule notification if permission granted
+                if ('Notification' in window && Notification.permission === 'granted') {
+                    setTimeout(() => {
+                        new Notification(`یادآوری: ${title}`, {
+                            body: notes || 'زمان انجام این کار فرا رسیده است',
+                            icon: '/resources/user-avatar.jpg'
+                        });
+                    }, when.getTime() - new Date().getTime());
+                }
+            } catch (error) {
+                window.PersianCRM.showToast('خطا در ایجاد یادآوری', 'error');
+            }
+        }
+        
+        // Complete reminder
+        function completeReminder(reminderId) {
+            if (confirm('آیا مطمئن هستید که این یادآوری را تکمیل کرده‌اید؟')) {
+                // In a real app, this would update the reminder status
+                window.PersianCRM.showToast('یادآوری تکمیل شد', 'success');
+                
+                // Find and update reminder locally
+                const reminder = reminders.find(r => r.id === reminderId);
+                if (reminder) {
+                    reminder.status = 'completed';
+                    renderReminders();
+                    updateRemindersSummary();
+                }
+            }
+        }
+        
+        // Edit reminder
+        function editReminder(reminderId) {
+            window.PersianCRM.showToast('قابلیت ویرایش به زودی افزوده خواهد شد', 'info');
+        }
+        
+        // Delete reminder
+        function deleteReminder(reminderId) {
+            if (confirm('آیا مطمئن هستید که می‌خواهید این یادآوری را حذف کنید؟')) {
+                window.PersianCRM.showToast('قابلیت حذف به زودی افزوده خواهد شد', 'info');
+            }
+        }
+    </script>
+</body>
+</html>

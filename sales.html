@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مدیریت فروش‌ها - CRM فارسی</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Persian Fonts -->
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vazirmatn@33.0.3/Vazirmatn-font-face.min.css" rel="stylesheet">
+    
+    <!-- Animation Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.0/dist/echarts.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+    
+    <!-- Custom Styles -->
+    <style>
+        :root {
+            --royal-blue: #1e3a8a;
+            --royal-gold: #d4af37;
+            --dark-bg: #0a0a0a;
+            --card-bg: #1f2937;
+        }
+        
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background: var(--dark-bg);
+            color: #ffffff;
+        }
+        
+        .card-royal {
+            background: var(--card-bg);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .card-royal:hover {
+            border-color: var(--royal-gold);
+            box-shadow: 0 20px 40px rgba(212, 175, 55, 0.2);
+            transform: translateY(-4px);
+        }
+        
+        .btn-royal {
+            background: linear-gradient(135deg, var(--royal-blue) 0%, #3b82f6 100%);
+            border: 1px solid var(--royal-gold);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-royal:hover {
+            background: linear-gradient(135deg, #1e40af 0%, var(--royal-blue) 100%);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .text-gold {
+            color: var(--royal-gold);
+        }
+        
+        .nav-glass {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+        }
+        
+        .sale-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .sale-card:hover {
+            border-color: var(--royal-gold);
+            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.2);
+        }
+        
+        .form-input {
+            background: var(--card-bg);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .form-input:focus {
+            border-color: var(--royal-gold);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+        }
+        
+        .product-item {
+            background: rgba(31, 41, 55, 0.8);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .total-section {
+            background: linear-gradient(135deg, rgba(30, 58, 138, 0.2) 0%, rgba(212, 175, 55, 0.2) 100%);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+        
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .status-completed {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        
+        .status-pending {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+        
+        .status-cancelled {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+        }
+        
+        .chart-container {
+            background: rgba(31, 41, 55, 0.8);
+            border-radius: 12px;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Background Canvas for Particles -->
+    <div id="background-canvas"></div>
+    
+    <!-- Navigation Header -->
+    <nav class="nav-glass fixed top-0 left-0 right-0 z-40">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex items-center space-x-4">
+                    <div class="text-2xl font-bold text-gold">💎 CRM فارسی</div>
+                </div>
+                
+                <!-- Search Bar -->
+                <div class="flex-1 max-w-md mx-8">
+                    <div class="relative">
+                        <input 
+                            type="text" 
+                            id="sale-search"
+                            placeholder="جستجوی فروش..."
+                            class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 pr-10 text-white placeholder-gray-400 focus:border-yellow-400 focus:outline-none"
+                        >
+                        <i class="fas fa-search absolute right-3 top-3 text-gray-400"></i>
+                    </div>
+                </div>
+                
+                <!-- Date/Time Display -->
+                <div class="flex items-center space-x-6 text-sm">
+                    <div class="text-center">
+                        <div data-persian-date class="text-gold font-medium"></div>
+                        <div data-persian-time class="text-blue-300"></div>
+                    </div>
+                    
+                    <!-- User Avatar -->
+                    <div class="flex items-center space-x-2">
+                        <img src="resources/user-avatar.jpg" alt="کاربر" class="w-8 h-8 rounded-full border-2 border-yellow-400">
+                        <span class="hidden md:block">مدیر سیستم</span>
+                    </div>
+                    
+                    <!-- Menu Toggle -->
+                    <button id="menu-toggle" class="p-2 rounded-lg hover:bg-gray-700 transition-colors">
+                        <i class="fas fa-bars text-gold"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Side Menu -->
+    <div id="side-menu" class="fixed top-0 right-0 h-full w-64 bg-gray-900 transform translate-x-full transition-transform duration-300 z-50">
+        <div class="p-4">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-bold text-gold">منو</h3>
+                <button id="menu-close" class="p-2 hover:bg-gray-700 rounded-lg">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <nav class="space-y-2">
+                <a href="index.html" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-home"></i>
+                    <span>صفحه اصلی</span>
+                </a>
+                <a href="customers.html" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-users"></i>
+                    <span>مشتریان</span>
+                </a>
+                <a href="sales.html" class="flex items-center space-x-3 p-3 rounded-lg bg-blue-600 text-white">
+                    <i class="fas fa-chart-line"></i>
+                    <span>فروش‌ها</span>
+                </a>
+                <a href="accounts.html" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-calculator"></i>
+                    <span>حساب‌ها</span>
+                </a>
+                <a href="reminders.html" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-bell"></i>
+                    <span>یادآوری‌ها</span>
+                </a>
+                <a href="dashboard.html" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>داشبورد</span>
+                </a>
+            </nav>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <main class="pt-20">
+        <!-- Page Header -->
+        <section class="py-8">
+            <div class="container mx-auto px-4">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                    <div class="mb-4 md:mb-0">
+                        <h1 class="text-3xl font-bold text-gold mb-2">
+                            <i class="fas fa-chart-line ml-2"></i>
+                            مدیریت فروش‌ها
+                        </h1>
+                        <p class="text-gray-400">ثبت و پیگیری فروش‌ها و سفارش‌ها</p>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <!-- Add Sale Button -->
+                        <button onclick="window.crmApp.showModal('add-sale-modal')" class="btn-royal px-6 py-2 rounded-lg font-medium">
+                            <i class="fas fa-plus ml-2"></i>
+                            فروش جدید
+                        </button>
+                        
+                        <!-- Export Button -->
+                        <button onclick="exportSales()" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg font-medium transition-colors">
+                            <i class="fas fa-download ml-2"></i>
+                            خروجی
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Sales Summary -->
+        <section class="py-4 bg-gray-900">
+            <div class="container mx-auto px-4">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="card-royal p-4 rounded-xl">
+                        <div class="flex items-center">
+                            <div class="text-3xl text-gold mr-4">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-bold text-white" id="total-sales-count">-</div>
+                                <div class="text-gray-400 text-sm">کل فروش‌ها</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card-royal p-4 rounded-xl">
+                        <div class="flex items-center">
+                            <div class="text-3xl text-green-400 mr-4">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-bold text-white" id="total-revenue">-</div>
+                                <div class="text-gray-400 text-sm">کل درآمد</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card-royal p-4 rounded-xl">
+                        <div class="flex items-center">
+                            <div class="text-3xl text-blue-400 mr-4">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-bold text-white" id="avg-sale-value">-</div>
+                                <div class="text-gray-400 text-sm">میانگین فروش</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card-royal p-4 rounded-xl">
+                        <div class="flex items-center">
+                            <div class="text-3xl text-yellow-400 mr-4">
+                                <i class="fas fa-calendar-day"></i>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-bold text-white" id="today-sales">-</div>
+                                <div class="text-gray-400 text-sm">فروش امروز</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Filters Section -->
+        <section class="py-4">
+            <div class="container mx-auto px-4">
+                <div class="card-royal p-4 rounded-xl">
+                    <div class="flex flex-wrap items-center gap-4">
+                        <!-- Filter by Date -->
+                        <div class="flex items-center space-x-2">
+                            <label class="text-sm text-gray-400">تاریخ:</label>
+                            <select id="date-filter" class="bg-gray-800 border border-gray-600 rounded-lg px-3 py-1 text-white text-sm focus:border-yellow-400 focus:outline-none">
+                                <option value="">همه تاریخ‌ها</option>
+                                <option value="today">امروز</option>
+                                <option value="week">این هفته</option>
+                                <option value="month">این ماه</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Filter by Status -->
+                        <div class="flex items-center space-x-2">
+                            <label class="text-sm text-gray-400">وضعیت:</label>
+                            <select id="status-filter" class="bg-gray-800 border border-gray-600 rounded-lg px-3 py-1 text-white text-sm focus:border-yellow-400 focus:outline-none">
+                                <option value="">همه وضعیت‌ها</option>
+                                <option value="completed">تکمیل شده</option>
+                                <option value="pending">در انتظار</option>
+                                <option value="cancelled">لغو شده</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Filter by Customer -->
+                        <div class="flex items-center space-x-2">
+                            <label class="text-sm text-gray-400">مشتری:</label>
+                            <select id="customer-filter" class="bg-gray-800 border border-gray-600 rounded-lg px-3 py-1 text-white text-sm focus:border-yellow-400 focus:outline-none">
+                                <option value="">همه مشتری‌ها</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Clear Filters -->
+                        <button onclick="clearFilters()" class="text-yellow-400 hover:text-yellow-300 text-sm">
+                            <i class="fas fa-times ml-1"></i>
+                            پاک کردن فیلترها
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Sales Chart -->
+        <section class="py-8">
+            <div class="container mx-auto px-4">
+                <div class="chart-container p-6 mb-8">
+                    <h3 class="text-xl font-semibold mb-4 text-gold">
+                        <i class="fas fa-chart-area ml-2"></i>
+                        نمودار فروش
+                    </h3>
+                    <div id="sales-chart" style="height: 400px;"></div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Sales List -->
+        <section class="py-8">
+            <div class="container mx-auto px-4">
+                <div class="card-royal rounded-xl overflow-hidden">
+                    <div class="p-6 border-b border-gray-700">
+                        <h3 class="text-xl font-semibold text-gold">
+                            <i class="fas fa-list ml-2"></i>
+                            لیست فروش‌ها
+                        </h3>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-800">
+                                <tr>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">کد فروش</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">مشتری</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">محصولات</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">مبلغ کل</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">تاریخ</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">وضعیت</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">عملیات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sales-table-body" class="divide-y divide-gray-700">
+                                <!-- Table rows will be dynamically generated -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Empty State -->
+                <div id="empty-state" class="hidden text-center py-12">
+                    <div class="text-6xl text-gray-600 mb-4">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-400 mb-2">هیچ فروشی یافت نشد</h3>
+                    <p class="text-gray-500 mb-6">برای شروع، فروش جدیدی ثبت کنید</p>
+                    <button onclick="window.crmApp.showModal('add-sale-modal')" class="btn-royal px-6 py-3 rounded-lg font-medium">
+                        <i class="fas fa-plus ml-2"></i>
+                        ثبت اولین فروش
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <!-- Add Sale Modal -->
+    <div id="add-sale-modal" class="modal fixed inset-0 modal-overlay z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="modal-content bg-gray-800 rounded-xl p-6 w-full max-w-4xl max-h-screen overflow-y-auto">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-2xl font-bold text-gold">ثبت فروش جدید</h3>
+                    <button class="modal-close text-gray-400 hover:text-white">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <form id="add-sale-form" class="space-y-6">
+                    <!-- Customer Selection -->
+                    <div>
+                        <label class="block text-sm font-medium mb-2">انتخاب مشتری</label>
+                        <select name="customerId" required class="form-input w-full rounded-lg px-3 py-2 text-white focus:outline-none">
+                            <option value="">انتخاب مشتری...</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Products Section -->
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <label class="block text-sm font-medium">محصولات</label>
+                            <button type="button" onclick="addProductRow()" class="text-gold hover:text-yellow-300 text-sm">
+                                <i class="fas fa-plus ml-1"></i>
+                                افزودن محصول
+                            </button>
+                        </div>
+                        
+                        <div id="products-container">
+                            <!-- Product rows will be added here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Sale Details -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">تخفیف (%)</label>
+                            <input type="number" name="discount" min="0" max="100" value="0" class="form-input w-full rounded-lg px-3 py-2 text-white focus:outline-none">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium mb-2">مالیات (%)</label>
+                            <input type="number" name="tax" min="0" max="100" value="9" class="form-input w-full rounded-lg px-3 py-2 text-white focus:outline-none">
+                        </div>
+                    </div>
+                    
+                    <!-- Total Section -->
+                    <div class="total-section p-4 rounded-lg">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                            <div>
+                                <div class="text-sm text-gray-400">جمع کل</div>
+                                <div id="subtotal" class="text-xl font-bold text-white">۰ تومان</div>
+                            </div>
+                            <div>
+                                <div class="text-sm text-gray-400">تخفیف</div>
+                                <div id="discount-amount" class="text-xl font-bold text-red-400">۰ تومان</div>
+                            </div>
+                            <div>
+                                <div class="text-sm text-gray-400">مالیات</div>
+                                <div id="tax-amount" class="text-xl font-bold text-blue-400">۰ تومان</div>
+                            </div>
+                            <div>
+                                <div class="text-sm text-gray-400">مبلغ نهایی</div>
+                                <div id="total-amount" class="text-xl font-bold text-gold">۰ تومان</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Status -->
+                    <div>
+                        <label class="block text-sm font-medium mb-2">وضعیت فروش</label>
+                        <select name="status" class="form-input w-full rounded-lg px-3 py-2 text-white focus:outline-none">
+                            <option value="completed">تکمیل شده</option>
+                            <option value="pending">در انتظار</option>
+                            <option value="cancelled">لغو شده</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="flex space-x-3 pt-4">
+                        <button type="submit" class="btn-royal flex-1 py-3 rounded-lg font-medium">
+                            <i class="fas fa-save ml-2"></i>
+                            ثبت فروش
+                        </button>
+                        <button type="button" class="modal-close bg-gray-600 flex-1 py-3 rounded-lg font-medium hover:bg-gray-500 transition-colors">
+                            انصراف
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="bg-gray-900 border-t border-gray-700 py-8">
+        <div class="container mx-auto px-4 text-center">
+            <div class="text-gold mb-2">💎 CRM فارسی - نسخه 1.0</div>
+            <div class="text-gray-400 text-sm">
+                © 1403 تمامی حقوق محفوظ است - طراحی شده با ❤️ برای کسب‌وکارهای فارسی‌زبان
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Scripts -->
+    <script src="main.js"></script>
+    
+    <script>
+        let sales = [];
+        let filteredSales = [];
+        let customers = [];
+        let productCounter = 0;
+        
+        // Sample products for demo
+        const sampleProducts = [
+            { id: 'p1', name: 'لپ‌تاپ دل XPS 13', price: 45000000 },
+            { id: 'p2', name: 'گوشی آیفون 15 پرو', price: 68000000 },
+            { id: 'p3', name: 'تبلت سامسونگ تب S9', price: 32000000 },
+            { id: 'p4', name: 'هدفون سونی WH-1000XM5', price: 8500000 },
+            { id: 'p5', name: 'ساعت هوشمند اپل واچ 9', price: 12000000 },
+            { id: 'p6', name: 'دوربین کانن EOS R6', price: 95000000 },
+            { id: 'p7', name: 'مانیتور ال‌جی 27 اینچ', price: 18000000 },
+            { id: 'p8', name: 'کیبورد مکانیکی ریزر', price: 6500000 }
+        ];
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', async function() {
+            await loadData();
+            initializeEventListeners();
+            renderSales();
+            updateSalesSummary();
+            initializeSalesChart();
+        });
+        
+        // Load data from storage
+        async function loadData() {
+            try {
+                sales = await window.PersianCRM.storage.getSales();
+                customers = await window.PersianCRM.storage.getCustomers();
+                filteredSales = [...sales];
+                
+                // Add sample sales if none exist
+                if (sales.length === 0) {
+                    await addSampleSales();
+                    sales = await window.PersianCRM.storage.getSales();
+                    filteredSales = [...sales];
+                }
+                
+                // Populate customer filter
+                populateCustomerFilter();
+            } catch (error) {
+                console.error('Error loading data:', error);
+                window.PersianCRM.showToast('خطا در بارگذاری اطلاعات', 'error');
+            }
+        }
+        
+        // Add sample sales for demo
+        async function addSampleSales() {
+            const sampleSales = [
+                {
+                    customerId: customers[0]?.id || 'c_001',
+                    items: [
+                        { productId: 'p1', productName: 'لپ‌تاپ دل XPS 13', qty: 1, unitPrice: 45000000 }
+                    ],
+                    total: 45000000,
+                    discount: 0,
+                    tax: 9,
+                    status: 'completed'
+                },
+                {
+                    customerId: customers[1]?.id || 'c_002',
+                    items: [
+                        { productId: 'p2', productName: 'گوشی آیفون 15 پرو', qty: 1, unitPrice: 68000000 },
+                        { productId: 'p4', productName: 'هدفون سونی WH-1000XM5', qty: 1, unitPrice: 8500000 }
+                    ],
+                    total: 76500000,
+                    discount: 5,
+                    tax: 9,
+                    status: 'completed'
+                },
+                {
+                    customerId: customers[2]?.id || 'c_003',
+                    items: [
+                        { productId: 'p3', productName: 'تبلت سامسونگ تب S9', qty: 2, unitPrice: 32000000 }
+                    ],
+                    total: 64000000,
+                    discount: 10,
+                    tax: 9,
+                    status: 'pending'
+                }
+            ];
+            
+            for (const sale of sampleSales) {
+                await window.PersianCRM.storage.addSale(sale);
+            }
+        }
+        
+        // Populate customer filter
+        function populateCustomerFilter() {
+            const select = document.getElementById('customer-filter');
+            select.innerHTML = '<option value="">همه مشتری‌ها</option>';
+            
+            customers.forEach(customer => {
+                const option = document.createElement('option');
+                option.value = customer.id;
+                option.textContent = `${customer.firstName} ${customer.lastName}`;
+                select.appendChild(option);
+            });
+        }
+        
+        // Initialize event listeners
+        function initializeEventListeners() {
+            // Search
+            document.getElementById('sale-search').addEventListener('input', handleSearch);
+            
+            // Filters
+            document.getElementById('date-filter').addEventListener('change', applyFilters);
+            document.getElementById('status-filter').addEventListener('change', applyFilters);
+            document.getElementById('customer-filter').addEventListener('change', applyFilters);
+            
+            // Add sale form
+            document.getElementById('add-sale-form').addEventListener('submit', handleAddSale);
+            
+            // Menu close
+            document.getElementById('menu-close').addEventListener('click', function() {
+                document.getElementById('side-menu').classList.add('translate-x-full');
+            });
+            
+            // Add initial product row
+            addProductRow();
+        }
+        
+        // Handle search
+        function handleSearch(e) {
+            const query = e.target.value.toLowerCase();
+            
+            if (query === '') {
+                filteredSales = [...sales];
+            } else {
+                filteredSales = sales.filter(sale => {
+                    const customer = customers.find(c => c.id === sale.customerId);
+                    const customerName = customer ? `${customer.firstName} ${customer.lastName}` : '';
+                    
+                    return sale.id.toLowerCase().includes(query) ||
+                           customerName.toLowerCase().includes(query) ||
+                           sale.items.some(item => item.productName.toLowerCase().includes(query));
+                });
+            }
+            
+            applyFilters();
+        }
+        
+        // Apply filters
+        function applyFilters() {
+            let filtered = [...filteredSales];
+            
+            // Date filter
+            const dateFilter = document.getElementById('date-filter').value;
+            if (dateFilter) {
+                const now = new Date();
+                let startDate;
+                
+                switch (dateFilter) {
+                    case 'today':
+                        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                        break;
+                    case 'week':
+                        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                        break;
+                    case 'month':
+                        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+                        break;
+                }
+                
+                if (startDate) {
+                    filtered = filtered.filter(sale => {
+                        const saleDate = new Date(sale.date);
+                        return saleDate >= startDate;
+                    });
+                }
+            }
+            
+            // Status filter
+            const statusFilter = document.getElementById('status-filter').value;
+            if (statusFilter) {
+                filtered = filtered.filter(sale => sale.status === statusFilter);
+            }
+            
+            // Customer filter
+            const customerFilter = document.getElementById('customer-filter').value;
+            if (customerFilter) {
+                filtered = filtered.filter(sale => sale.customerId === customerFilter);
+            }
+            
+            filteredSales = filtered;
+            renderSales();
+            updateSalesSummary();
+        }
+        
+        // Clear filters
+        function clearFilters() {
+            document.getElementById('sale-search').value = '';
+            document.getElementById('date-filter').value = '';
+            document.getElementById('status-filter').value = '';
+            document.getElementById('customer-filter').value = '';
+            
+            filteredSales = [...sales];
+            renderSales();
+            updateSalesSummary();
+        }
+        
+        // Render sales table
+        function renderSales() {
+            const tbody = document.getElementById('sales-table-body');
+            tbody.innerHTML = '';
+            
+            if (filteredSales.length === 0) {
+                document.getElementById('empty-state').classList.remove('hidden');
+                return;
+            }
+            
+            document.getElementById('empty-state').classList.add('hidden');
+            
+            filteredSales.forEach(sale => {
+                const customer = customers.find(c => c.id === sale.customerId);
+                const customerName = customer ? `${customer.firstName} ${customer.lastName}` : 'نامشخص';
+                
+                const productsHtml = sale.items.map(item => 
+                    `<div class="text-sm">${item.productName} (${item.qty}x)</div>`
+                ).join('');
+                
+                const statusClass = `status-${sale.status}`;
+                const statusText = {
+                    'completed': 'تکمیل شده',
+                    'pending': 'در انتظار',
+                    'cancelled': 'لغو شده'
+                }[sale.status];
+                
+                const row = document.createElement('tr');
+                row.className = 'table-row hover:bg-gray-800 transition-colors';
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
+                        #${sale.id}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                        ${customerName}
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-300">
+                        ${productsHtml}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gold">
+                        ${window.PersianCRM.formatCurrency(sale.total)}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                        ${sale.date || 'تاریخ نامشخص'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="status-badge ${statusClass}">
+                            ${statusText}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div class="flex space-x-2">
+                            <button onclick="viewSale('${sale.id}')" class="text-blue-400 hover:text-blue-300">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button onclick="printReceipt('${sale.id}')" class="text-green-400 hover:text-green-300">
+                                <i class="fas fa-print"></i>
+                            </button>
+                            <button onclick="editSale('${sale.id}')" class="text-yellow-400 hover:text-yellow-300">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+        
+        // Update sales summary
+        function updateSalesSummary() {
+            const totalSales = filteredSales.length;
+            const totalRevenue = filteredSales.reduce((sum, sale) => sum + (sale.total || 0), 0);
+            const avgSaleValue = totalSales > 0 ? totalRevenue / totalSales : 0;
+            
+            // Today's sales
+            const today = new Date().toDateString();
+            const todaySales = filteredSales.filter(sale => {
+                const saleDate = new Date(sale.date);
+                return saleDate.toDateString() === today;
+            }).length;
+            
+            document.getElementById('total-sales-count').textContent = 
+                window.PersianCRM.utils.toPersianNumbers(totalSales.toString());
+            document.getElementById('total-revenue').textContent = 
+                window.PersianCRM.formatCurrency(totalRevenue);
+            document.getElementById('avg-sale-value').textContent = 
+                window.PersianCRM.formatCurrency(avgSaleValue);
+            document.getElementById('today-sales').textContent = 
+                window.PersianCRM.utils.toPersianNumbers(todaySales.toString());
+        }
+        
+        // Initialize sales chart
+        function initializeSalesChart() {
+            const chartDom = document.getElementById('sales-chart');
+            const myChart = echarts.init(chartDom);
+            
+            // Generate sample data for the last 30 days
+            const dates = [];
+            const salesData = [];
+            
+            for (let i = 29; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                dates.push(date.toLocaleDateString('fa-IR'));
+                
+                // Generate realistic sales data
+                const baseAmount = 50000000;
+                const variation = (Math.random() - 0.5) * 40000000;
+                salesData.push(Math.max(10000000, baseAmount + variation));
+            }
+            
+            const option = {
+                backgroundColor: 'transparent',
+                textStyle: {
+                    color: '#ffffff'
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    backgroundColor: '#1f2937',
+                    borderColor: '#d4af37',
+                    textStyle: {
+                        color: '#ffffff'
+                    },
+                    formatter: function(params) {
+                        return `${params[0].name}<br/>فروش: ${window.PersianCRM.formatCurrency(params[0].value)}`;
+                    }
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    boundaryGap: false,
+                    data: dates,
+                    axisLine: {
+                        lineStyle: {
+                            color: '#6b7280'
+                        }
+                    },
+                    axisLabel: {
+                        color: '#9ca3af'
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    axisLine: {
+                        lineStyle: {
+                            color: '#6b7280'
+                        }
+                    },
+                    axisLabel: {
+                        color: '#9ca3af',
+                        formatter: function(value) {
+                            return (value / 1000000).toFixed(0) + 'M';
+                        }
+                    }
+                },
+                series: [{
+                    name: 'فروش',
+                    type: 'line',
+                    data: salesData,
+                    smooth: true,
+                    lineStyle: {
+                        color: '#d4af37',
+                        width: 3
+                    },
+                    itemStyle: {
+                        color: '#d4af37'
+                    },
+                    areaStyle: {
+                        color: {
+                            type: 'linear',
+                            x: 0,
+                            y: 0,
+                            x2: 0,
+                            y2: 1,
+                            colorStops: [{
+                                offset: 0, color: 'rgba(212, 175, 55, 0.3)'
+                            }, {
+                                offset: 1, color: 'rgba(212, 175, 55, 0.1)'
+                            }]
+                        }
+                    }
+                }]
+            };
+            
+            myChart.setOption(option);
+            
+            // Make chart responsive
+            window.addEventListener('resize', function() {
+                myChart.resize();
+            });
+        }
+        
+        // Add product row to form
+        function addProductRow() {
+            const container = document.getElementById('products-container');
+            const productRow = document.createElement('div');
+            productRow.className = 'product-item';
+            productRow.id = `product-${productCounter}`;
+            
+            productRow.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium mb-2">محصول</label>
+                        <select name="products[${productCounter}][productId]" required class="form-input w-full rounded-lg px-3 py-2 text-white focus:outline-none" onchange="updateProductPrice(${productCounter})">
+                            <option value="">انتخاب محصول...</option>
+                            ${sampleProducts.map(p => `<option value="${p.id}" data-price="${p.price}">${p.name}</option>`).join('')}
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">تعداد</label>
+                        <input type="number" name="products[${productCounter}][qty]" min="1" value="1" required class="form-input w-full rounded-lg px-3 py-2 text-white focus:outline-none" onchange="calculateTotals()">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">قیمت واحد</label>
+                        <input type="number" name="products[${productCounter}][unitPrice]" min="0" required class="form-input w-full rounded-lg px-3 py-2 text-white focus:outline-none" onchange="calculateTotals()">
+                    </div>
+                </div>
+                
+                <div class="flex justify-end mt-2">
+                    <button type="button" onclick="removeProductRow(${productCounter})" class="text-red-400 hover:text-red-300 text-sm">
+                        <i class="fas fa-times ml-1"></i>
+                        حذف
+                    </button>
+                </div>
+            `;
+            
+            container.appendChild(productRow);
+            productCounter++;
+        }
+        
+        // Remove product row
+        function removeProductRow(index) {
+            const productRow = document.getElementById(`product-${index}`);
+            if (productRow) {
+                productRow.remove();
+                calculateTotals();
+            }
+        }
+        
+        // Update product price when product is selected
+        function updateProductPrice(index) {
+            const select = document.querySelector(`select[name="products[${index}][productId]"]`);
+            const priceInput = document.querySelector(`input[name="products[${index}][unitPrice]"]`);
+            
+            if (select && priceInput) {
+                const selectedOption = select.options[select.selectedIndex];
+                const price = selectedOption.getAttribute('data-price');
+                if (price) {
+                    priceInput.value = price;
+                }
+                calculateTotals();
+            }
+        }
+        
+        // Calculate totals
+        function calculateTotals() {
+            let subtotal = 0;
+            
+            // Calculate subtotal from all products
+            for (let i = 0; i < productCounter; i++) {
+                const qtyInput = document.querySelector(`input[name="products[${i}][qty]"]`);
+                const priceInput = document.querySelector(`input[name="products[${i}][unitPrice]"]`);
+                
+                if (qtyInput && priceInput) {
+                    const qty = parseInt(qtyInput.value) || 0;
+                    const price = parseInt(priceInput.value) || 0;
+                    subtotal += qty * price;
+                }
+            }
+            
+            // Get discount and tax
+            const discountPercent = parseFloat(document.querySelector('input[name="discount"]').value) || 0;
+            const taxPercent = parseFloat(document.querySelector('input[name="tax"]').value) || 0;
+            
+            // Calculate amounts
+            const discountAmount = subtotal * (discountPercent / 100);
+            const taxableAmount = subtotal - discountAmount;
+            const taxAmount = taxableAmount * (taxPercent / 100);
+            const total = taxableAmount + taxAmount;
+            
+            // Update display
+            document.getElementById('subtotal').textContent = window.PersianCRM.formatCurrency(subtotal);
+            document.getElementById('discount-amount').textContent = window.PersianCRM.formatCurrency(discountAmount);
+            document.getElementById('tax-amount').textContent = window.PersianCRM.formatCurrency(taxAmount);
+            document.getElementById('total-amount').textContent = window.PersianCRM.formatCurrency(total);
+        }
+        
+        // Handle add sale form
+        async function handleAddSale(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const customerId = formData.get('customerId');
+            const discount = parseFloat(formData.get('discount')) || 0;
+            const tax = parseFloat(formData.get('tax')) || 0;
+            const status = formData.get('status');
+            
+            // Collect products
+            const items = [];
+            for (let i = 0; i < productCounter; i++) {
+                const productId = formData.get(`products[${i}][productId]`);
+                const qty = parseInt(formData.get(`products[${i}][qty]`)) || 0;
+                const unitPrice = parseInt(formData.get(`products[${i}][unitPrice]`)) || 0;
+                
+                if (productId && qty > 0 && unitPrice > 0) {
+                    const product = sampleProducts.find(p => p.id === productId);
+                    items.push({
+                        productId,
+                        productName: product ? product.name : productId,
+                        qty,
+                        unitPrice
+                    });
+                }
+            }
+            
+            if (items.length === 0) {
+                window.PersianCRM.showToast('حداقل یک محصول انتخاب کنید', 'error');
+                return;
+            }
+            
+            // Calculate total
+            const subtotal = items.reduce((sum, item) => sum + (item.qty * item.unitPrice), 0);
+            const discountAmount = subtotal * (discount / 100);
+            const taxableAmount = subtotal - discountAmount;
+            const taxAmount = taxableAmount * (tax / 100);
+            const total = taxableAmount + taxAmount;
+            
+            const sale = {
+                customerId,
+                items,
+                total,
+                discount,
+                tax,
+                status
+            };
+            
+            try {
+                await window.PersianCRM.storage.addSale(sale);
+                window.PersianCRM.showToast('فروش با موفقیت ثبت شد', 'success');
+                window.crmApp.hideModal('add-sale-modal');
+                e.target.reset();
+                
+                // Reset products container
+                document.getElementById('products-container').innerHTML = '';
+                productCounter = 0;
+                addProductRow();
+                
+                // Reload data
+                await loadData();
+                renderSales();
+                updateSalesSummary();
+            } catch (error) {
+                window.PersianCRM.showToast('خطا در ثبت فروش', 'error');
+            }
+        }
+        
+        // View sale details
+        function viewSale(saleId) {
+            window.PersianCRM.showToast('قابلیت مشاهده جزئیات به زودی افزوده خواهد شد', 'info');
+        }
+        
+        // Print receipt
+        function printReceipt(saleId) {
+            window.PersianCRM.showToast('در حال آماده‌سازی رسید...', 'info');
+        }
+        
+        // Edit sale
+        function editSale(saleId) {
+            window.PersianCRM.showToast('قابلیت ویرایش به زودی افزوده خواهد شد', 'info');
+        }
+        
+        // Export sales
+        function exportSales() {
+            const data = JSON.stringify(filteredSales, null, 2);
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `sales-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            window.PersianCRM.showToast('اطلاعات فروش دانلود شد', 'success');
+        }
+        
+        // Add event listeners for real-time calculation
+        document.addEventListener('change', function(e) {
+            if (e.target.name && (e.target.name.includes('qty') || e.target.name.includes('unitPrice') || e.target.name === 'discount' || e.target.name === 'tax')) {
+                calculateTotals();
+            }
+        });
+        
+        document.addEventListener('input', function(e) {
+            if (e.target.name && (e.target.name.includes('qty') || e.target.name.includes('unitPrice') || e.target.name === 'discount' || e.target.name === 'tax')) {
+                calculateTotals();
+            }
+        });
+    </script>
+</body>
+</html>

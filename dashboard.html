@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>داشبورد تحلیلی - CRM فارسی</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Persian Fonts -->
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vazirmatn@33.0.3/Vazirmatn-font-face.min.css" rel="stylesheet">
+    
+    <!-- Animation Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.0/dist/echarts.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+    
+    <!-- Custom Styles -->
+    <style>
+        :root {
+            --royal-blue: #1e3a8a;
+            --royal-gold: #d4af37;
+            --dark-bg: #0a0a0a;
+            --card-bg: #1f2937;
+        }
+        
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background: var(--dark-bg);
+            color: #ffffff;
+        }
+        
+        .card-royal {
+            background: var(--card-bg);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .card-royal:hover {
+            border-color: var(--royal-gold);
+            box-shadow: 0 20px 40px rgba(212, 175, 55, 0.2);
+            transform: translateY(-4px);
+        }
+        
+        .btn-royal {
+            background: linear-gradient(135deg, var(--royal-blue) 0%, #3b82f6 100%);
+            border: 1px solid var(--royal-gold);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-royal:hover {
+            background: linear-gradient(135deg, #1e40af 0%, var(--royal-blue) 100%);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .text-gold {
+            color: var(--royal-gold);
+        }
+        
+        .nav-glass {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+        }
+        
+        .widget-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .widget-card:hover {
+            border-color: var(--royal-gold);
+            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .widget-card.dragging {
+            opacity: 0.8;
+            transform: rotate(5deg);
+        }
+        
+        .chart-container {
+            background: rgba(31, 41, 55, 0.8);
+            border-radius: 12px;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, rgba(30, 58, 138, 0.1) 0%, rgba(212, 175, 55, 0.1) 100%);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+        
+        .metric-positive {
+            color: #10b981;
+        }
+        
+        .metric-negative {
+            color: #ef4444;
+        }
+        
+        .metric-neutral {
+            color: #f59e0b;
+        }
+        
+        .widget-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .widget-full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .widget-half-width {
+            grid-column: span 2;
+        }
+        
+        .widget-quarter-width {
+            grid-column: span 1;
+        }
+        
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+        }
+        
+        .drag-handle {
+            cursor: move;
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+        
+        .drag-handle:hover {
+            opacity: 1;
+        }
+        
+        .widget-hidden {
+            display: none !important;
+        }
+        
+        .performance-indicator {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .performance-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--royal-gold) 0%, #fbbf24 100%);
+            border-radius: 4px;
+            transition: width 1s ease;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Background Canvas for Particles -->
+    <div id="background-canvas"></div>
+    
+    <!-- Navigation Header -->
+    <nav class="nav-glass fixed top-0 left-0 right-0 z-40">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex items-center space-x-4">
+                    <div class="text-2xl font-bold text-gold">💎 CRM فارسی</div>
+                </div>
+                
+                <!-- Dashboard Title -->
+                <div class="flex-1 text-center">
+                    <h1 class="text-xl font-bold text-white">داشبورد تحلیلی</h1>
+                </div>
+                
+                <!-- Date/Time Display -->
+                <div class="flex items-center space-x-6 text-sm">
+                    <div class="text-center">
+                        <div data-persian-date class="text-gold font-medium"></div>
+                        <div data-persian-time class="text-blue-300"></div>
+                    </div>
+                    
+                    <!-- User Avatar -->
+                    <div class="flex items-center space-x-2">
+                        <img src="resources/user-avatar.jpg" alt="کاربر" class="w-8 h-8 rounded-full border-2 border-yellow-400">
+                        <span class="hidden md:block">مدیر سیستم</span>
+                    </div>
+                    
+                    <!-- Menu Toggle -->
+                    <button id="menu-toggle" class="p-2 rounded-lg hover:bg-gray-700 transition-colors">
+                        <i class="fas fa-bars text-gold"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Side Menu -->
+    <div id="side-menu" class="fixed top-0 right-0 h-full w-64 bg-gray-900 transform translate-x-full transition-transform duration-300 z-50">
+        <div class="p-4">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-bold text-gold">منو</h3>
+                <button id="menu-close" class="p-2 hover:bg-gray-700 rounded-lg">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <nav class="space-y-2">
+                <a href="index.html" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-home"></i>
+                    <span>صفحه اصلی</span>
+                </a>
+                <a href="customers.html" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-users"></i>
+                    <span>مشتریان</span>
+                </a>
+                <a href="sales.html" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-chart-line"></i>
+                    <span>فروش‌ها</span>
+                </a>
+                <a href="accounts.html" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-calculator"></i>
+                    <span>حساب‌ها</span>
+                </a>
+                <a href="reminders.html" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-bell"></i>
+                    <span>یادآوری‌ها</span>
+                </a>
+                <a href="dashboard.html" class="flex items-center space-x-3 p-3 rounded-lg bg-blue-600 text-white">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>داشبورد</span>
+                </a>
+            </nav>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <main class="pt-20">
+        <!-- Dashboard Controls -->
+        <section class="py-6 bg-gray-900">
+            <div class="container mx-auto px-4">
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    <div class="flex items-center space-x-4">
+                        <h2 class="text-xl font-bold text-gold">
+                            <i class="fas fa-cogs ml-2"></i>
+                            کنترل پنل داشبورد
+                        </h2>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <!-- Time Period Selector -->
+                        <select id="period-selector" class="bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:border-yellow-400 focus:outline-none">
+                            <option value="today">امروز</option>
+                            <option value="week">این هفته</option>
+                            <option value="month" selected>این ماه</option>
+                            <option value="quarter">سه ماهه</option>
+                            <option value="year">سال جاری</option>
+                        </select>
+                        
+                        <!-- Customize Widgets Button -->
+                        <button onclick="window.crmApp.showModal('customize-modal')" class="btn-royal px-4 py-2 rounded-lg font-medium text-sm">
+                            <i class="fas fa-palette ml-2"></i>
+                            سفارشی‌سازی
+                        </button>
+                        
+                        <!-- Export Dashboard -->
+                        <button onclick="exportDashboard()" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg font-medium text-sm transition-colors">
+                            <i class="fas fa-download ml-2"></i>
+                            خروجی
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Dashboard Widgets -->
+        <section class="py-8">
+            <div class="container mx-auto px-4">
+                <div id="dashboard-widgets" class="widget-grid">
+                    <!-- Widgets will be dynamically generated -->
+                </div>
+            </div>
+        </section>
+        
+        <!-- Performance Analysis -->
+        <section class="py-8">
+            <div class="container mx-auto px-4">
+                <div class="card-royal p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold text-gold mb-6">
+                        <i class="fas fa-analytics ml-2"></i>
+                        تحلیل عملکرد
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Customer Satisfaction -->
+                        <div class="metric-card p-4 rounded-lg">
+                            <div class="flex items-center justify-between mb-3">
+                                <h4 class="text-sm font-medium text-gray-400">رضایت مشتریان</h4>
+                                <i class="fas fa-smile text-green-400"></i>
+                            </div>
+                            <div class="text-2xl font-bold text-white mb-2">۹۲٪</div>
+                            <div class="performance-indicator">
+                                <div class="performance-bar" style="width: 92%"></div>
+                            </div>
+                            <div class="text-xs text-gray-400 mt-2">+۵٪ نسبت به ماه قبل</div>
+                        </div>
+                        
+                        <!-- Sales Conversion -->
+                        <div class="metric-card p-4 rounded-lg">
+                            <div class="flex items-center justify-between mb-3">
+                                <h4 class="text-sm font-medium text-gray-400">نرخ تبدیل</h4>
+                                <i class="fas fa-chart-line text-blue-400"></i>
+                            </div>
+                            <div class="text-2xl font-bold text-white mb-2">۷۸٪</div>
+                            <div class="performance-indicator">
+                                <div class="performance-bar" style="width: 78%"></div>
+                            </div>
+                            <div class="text-xs text-gray-400 mt-2">+۲٪ نسبت به ماه قبل</div>
+                        </div>
+                        
+                        <!-- Response Time -->
+                        <div class="metric-card p-4 rounded-lg">
+                            <div class="flex items-center justify-between mb-3">
+                                <h4 class="text-sm font-medium text-gray-400">زمان پاسخگویی</h4>
+                                <i class="fas fa-clock text-yellow-400"></i>
+                            </div>
+                            <div class="text-2xl font-bold text-white mb-2">۱۵ دقیقه</div>
+                            <div class="performance-indicator">
+                                <div class="performance-bar" style="width: 85%"></div>
+                            </div>
+                            <div class="text-xs text-gray-400 mt-2">-۳ دقیقه نسبت به ماه قبل</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Insights and Recommendations -->
+        <section class="py-8">
+            <div class="container mx-auto px-4">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- AI Insights -->
+                    <div class="card-royal p-6 rounded-xl">
+                        <h3 class="text-xl font-semibold text-gold mb-4">
+                            <i class="fas fa-brain ml-2"></i>
+                            بینش‌های هوش مصنوعی
+                        </h3>
+                        
+                        <div class="space-y-4">
+                            <div class="bg-blue-900 bg-opacity-30 border border-blue-500 rounded-lg p-4">
+                                <div class="flex items-start space-x-3">
+                                    <i class="fas fa-lightbulb text-yellow-400 mt-1"></i>
+                                    <div>
+                                        <h4 class="font-medium text-white mb-1">فرصت فروش</h4>
+                                        <p class="text-sm text-gray-300">مشتریان VIP در ۳ روز گذشته ۴۲٪ بیشتر خرید کرده‌اند. پیشنهاد می‌شود تمرکز بیشتری روی این گروه داشته باشید.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-green-900 bg-opacity-30 border border-green-500 rounded-lg p-4">
+                                <div class="flex items-start space-x-3">
+                                    <i class="fas fa-trending-up text-green-400 mt-1"></i>
+                                    <div>
+                                        <h4 class="font-medium text-white mb-1">روند رو به رشد</h4>
+                                        <p class="text-sm text-gray-300">فروش محصولات جدید ۱۵٪ افزایش یافته است. این روند را ادامه دهید.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-red-900 bg-opacity-30 border border-red-500 rounded-lg p-4">
+                                <div class="flex items-start space-x-3">
+                                    <i class="fas fa-exclamation-triangle text-red-400 mt-1"></i>
+                                    <div>
+                                        <h4 class="font-medium text-white mb-1">هشدار</h4>
+                                        <p class="text-sm text-gray-300">۵ یادآوری سررسید گذشته دارید که نیاز به پیگیری فوری دارند.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recommendations -->
+                    <div class="card-royal p-6 rounded-xl">
+                        <h3 class="text-xl font-semibold text-gold mb-4">
+                            <i class="fas fa-lightbulb ml-2"></i>
+                            پیشنهادات بهبود
+                        </h3>
+                        
+                        <div class="space-y-4">
+                            <div class="flex items-center space-x-3 p-3 bg-gray-700 rounded-lg">
+                                <div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-users text-white"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-medium text-white">افزایش تعامل با مشتریان</h4>
+                                    <p class="text-sm text-gray-400">تماس با ۱۲ مشتری غیرفعال در هفته آینده</p>
+                                </div>
+                                <button class="text-blue-400 hover:text-blue-300">
+                                    <i class="fas fa-arrow-left"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="flex items-center space-x-3 p-3 bg-gray-700 rounded-lg">
+                                <div class="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-chart-line text-white"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-medium text-white">بهینه‌سازی فروش</h4>
+                                    <p class="text-sm text-gray-400">تمرکز روی محصولات با سود بالاتر</p>
+                                </div>
+                                <button class="text-green-400 hover:text-green-300">
+                                    <i class="fas fa-arrow-left"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="flex items-center space-x-3 p-3 bg-gray-700 rounded-lg">
+                                <div class="w-10 h-10 bg-yellow-600 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-bell text-white"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-medium text-white">مدیریت زمان</h4>
+                                    <p class="text-sm text-gray-400">کاهش زمان پاسخگویی به ۱۰ دقیقه</p>
+                                </div>
+                                <button class="text-yellow-400 hover:text-yellow-300">
+                                    <i class="fas fa-arrow-left"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <!-- Customize Dashboard Modal -->
+    <div id="customize-modal" class="modal fixed inset-0 modal-overlay z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="modal-content bg-gray-800 rounded-xl p-6 w-full max-w-2xl max-h-screen overflow-y-auto">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-2xl font-bold text-gold">سفارشی‌سازی داشبورد</h3>
+                    <button class="modal-close text-gray-400 hover:text-white">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="space-y-6">
+                    <!-- Widget Visibility -->
+                    <div>
+                        <h4 class="text-lg font-medium text-white mb-4">نمایش ویجت‌ها</h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <label class="flex items-center space-x-3">
+                                <input type="checkbox" id="widget-sales" checked class="form-checkbox text-gold">
+                                <span>نمودار فروش</span>
+                            </label>
+                            <label class="flex items-center space-x-3">
+                                <input type="checkbox" id="widget-customers" checked class="form-checkbox text-gold">
+                                <span>آمار مشتریان</span>
+                            </label>
+                            <label class="flex items-center space-x-3">
+                                <input type="checkbox" id="widget-reminders" checked class="form-checkbox text-gold">
+                                <span>یادآوری‌ها</span>
+                            </label>
+                            <label class="flex items-center space-x-3">
+                                <input type="checkbox" id="widget-financial" checked class="form-checkbox text-gold">
+                                <span>وضعیت مالی</span>
+                            </label>
+                            <label class="flex items-center space-x-3">
+                                <input type="checkbox" id="widget-performance" checked class="form-checkbox text-gold">
+                                <span>عملکرد تیم</span>
+                            </label>
+                            <label class="flex items-center space-x-3">
+                                <input type="checkbox" id="widget-goals" checked class="form-checkbox text-gold">
+                                <span>اهداف</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Dashboard Theme -->
+                    <div>
+                        <h4 class="text-lg font-medium text-white mb-4">تم داشبورد</h4>
+                        <div class="grid grid-cols-3 gap-4">
+                            <button class="p-4 border border-gray-600 rounded-lg hover:border-gold transition-colors text-center">
+                                <div class="w-full h-8 bg-gradient-to-r from-blue-900 to-purple-900 rounded mb-2"></div>
+                                <span class="text-sm">تم تیره</span>
+                            </button>
+                            <button class="p-4 border border-gold rounded-lg text-center">
+                                <div class="w-full h-8 bg-gradient-to-r from-gray-900 to-yellow-900 rounded mb-2"></div>
+                                <span class="text-sm">تم سلطنتی</span>
+                            </button>
+                            <button class="p-4 border border-gray-600 rounded-lg hover:border-gold transition-colors text-center">
+                                <div class="w-full h-8 bg-gradient-to-r from-blue-100 to-purple-100 rounded mb-2"></div>
+                                <span class="text-sm">تم روشن</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="flex space-x-3 pt-4">
+                        <button onclick="applyCustomization()" class="btn-royal flex-1 py-3 rounded-lg font-medium">
+                            <i class="fas fa-check ml-2"></i>
+                            اعمال تغییرات
+                        </button>
+                        <button onclick="resetCustomization()" class="bg-gray-600 flex-1 py-3 rounded-lg font-medium hover:bg-gray-500 transition-colors">
+                            <i class="fas fa-undo ml-2"></i>
+                            بازنشانی
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="bg-gray-900 border-t border-gray-700 py-8">
+        <div class="container mx-auto px-4 text-center">
+            <div class="text-gold mb-2">💎 CRM فارسی - نسخه 1.0</div>
+            <div class="text-gray-400 text-sm">
+                © 1403 تمامی حقوق محفوظ است - طراحی شده با ❤️ برای کسب‌وکارهای فارسی‌زبان
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Scripts -->
+    <script src="main.js"></script>
+    
+    <script>
+        let customers = [];
+        let sales = [];
+        let reminders = [];
+        let transactions = [];
+        
+        // Dashboard widgets configuration
+        const widgets = {
+            'sales-chart': {
+                title: 'نمودار فروش',
+                icon: 'fas fa-chart-line',
+                visible: true,
+                size: 'full-width'
+            },
+            'customers-stats': {
+                title: 'آمار مشتریان',
+                icon: 'fas fa-users',
+                visible: true,
+                size: 'quarter-width'
+            },
+            'reminders-today': {
+                title: 'یادآوری‌های امروز',
+                icon: 'fas fa-bell',
+                visible: true,
+                size: 'quarter-width'
+            },
+            'financial-overview': {
+                title: 'وضعیت مالی',
+                icon: 'fas fa-wallet',
+                visible: true,
+                size: 'quarter-width'
+            },
+            'team-performance': {
+                title: 'عملکرد تیم',
+                icon: 'fas fa-users-cog',
+                visible: true,
+                size: 'quarter-width'
+            },
+            'monthly-goals': {
+                title: 'اهداف ماهانه',
+                icon: 'fas fa-target',
+                visible: true,
+                size: 'half-width'
+            }
+        };
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', async function() {
+            await loadAllData();
+            initializeEventListeners();
+            renderDashboardWidgets();
+            initializeCharts();
+        });
+        
+        // Load all data from storage
+        async function loadAllData() {
+            try {
+                customers = await window.PersianCRM.storage.getCustomers();
+                sales = await window.PersianCRM.storage.getSales();
+                reminders = await window.PersianCRM.storage.getReminders();
+                transactions = await window.PersianCRM.storage.getTransactions();
+            } catch (error) {
+                console.error('Error loading data:', error);
+                window.PersianCRM.showToast('خطا در بارگذاری داده‌ها', 'error');
+            }
+        }
+        
+        // Initialize event listeners
+        function initializeEventListeners() {
+            // Period selector
+            document.getElementById('period-selector').addEventListener('change', function() {
+                renderDashboardWidgets();
+                initializeCharts();
+            });
+            
+            // Menu close
+            document.getElementById('menu-close').addEventListener('click', function() {
+                document.getElementById('side-menu').classList.add('translate-x-full');
+            });
+        }
+        
+        // Render dashboard widgets
+        function renderDashboardWidgets() {
+            const container = document.getElementById('dashboard-widgets');
+            container.innerHTML = '';
+            
+            Object.entries(widgets).forEach(([widgetId, widget]) => {
+                if (widget.visible) {
+                    const widgetElement = createWidget(widgetId, widget);
+                    container.appendChild(widgetElement);
+                }
+            });
+        }
+        
+        // Create widget element
+        function createWidget(widgetId, widget) {
+            const widgetDiv = document.createElement('div');
+            widgetDiv.className = `widget-card ${widget.size} p-6 rounded-xl`;
+            widgetDiv.id = `widget-${widgetId}`;
+            
+            let content = '';
+            
+            switch (widgetId) {
+                case 'sales-chart':
+                    content = createSalesChartWidget();
+                    break;
+                case 'customers-stats':
+                    content = createCustomersStatsWidget();
+                    break;
+                case 'reminders-today':
+                    content = createRemindersWidget();
+                    break;
+                case 'financial-overview':
+                    content = createFinancialWidget();
+                    break;
+                case 'team-performance':
+                    content = createTeamPerformanceWidget();
+                    break;
+                case 'monthly-goals':
+                    content = createMonthlyGoalsWidget();
+                    break;
+                default:
+                    content = '<div class="text-center text-gray-400">ویجت در دست توسعه</div>';
+            }
+            
+            widgetDiv.innerHTML = `
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center space-x-2">
+                        <i class="${widget.icon} text-gold"></i>
+                        <h3 class="text-lg font-semibold text-white">${widget.title}</h3>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button class="drag-handle text-gray-400 hover:text-white">
+                            <i class="fas fa-grip-vertical"></i>
+                        </button>
+                        <button onclick="toggleWidget('${widgetId}')" class="text-gray-400 hover:text-white">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                ${content}
+            `;
+            
+            return widgetDiv;
+        }
+        
+        // Create sales chart widget
+        function createSalesChartWidget() {
+            return `
+                <div class="chart-container p-4">
+                    <div id="dashboard-sales-chart" style="height: 300px;"></div>
+                </div>
+                <div class="grid grid-cols-3 gap-4 mt-4 text-center">
+                    <div>
+                        <div class="text-2xl font-bold text-gold">${window.PersianCRM.utils.toPersianNumbers(sales.length.toString())}</div>
+                        <div class="text-sm text-gray-400">کل فروش‌ها</div>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-green-400">${window.PersianCRM.formatCurrency(sales.reduce((sum, s) => sum + (s.total || 0), 0))}</div>
+                        <div class="text-sm text-gray-400">کل درآمد</div>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-blue-400">${window.PersianCRM.formatCurrency(sales.length > 0 ? sales.reduce((sum, s) => sum + (s.total || 0), 0) / sales.length : 0)}</div>
+                        <div class="text-sm text-gray-400">میانگین فروش</div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Create customers stats widget
+        function createCustomersStatsWidget() {
+            const vipCustomers = customers.filter(c => c.tags && c.tags.includes('VIP')).length;
+            const newCustomers = customers.filter(c => {
+                const createdDate = new Date(c.createdAt || c.registrationDate);
+                const weekAgo = new Date();
+                weekAgo.setDate(weekAgo.getDate() - 7);
+                return createdDate >= weekAgo;
+            }).length;
+            
+            return `
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
+                        <div>
+                            <div class="text-2xl font-bold text-white">${window.PersianCRM.utils.toPersianNumbers(customers.length.toString())}</div>
+                            <div class="text-sm text-gray-400">کل مشتریان</div>
+                        </div>
+                        <i class="fas fa-users text-3xl text-gold"></i>
+                    </div>
+                    
+                    <div class="flex items-center justify-between p-3 bg-blue-900 bg-opacity-30 rounded-lg">
+                        <div>
+                            <div class="text-xl font-bold text-blue-400">${window.PersianCRM.utils.toPersianNumbers(vipCustomers.toString())}</div>
+                            <div class="text-sm text-gray-400">مشتریان VIP</div>
+                        </div>
+                        <i class="fas fa-crown text-2xl text-blue-400"></i>
+                    </div>
+                    
+                    <div class="flex items-center justify-between p-3 bg-green-900 bg-opacity-30 rounded-lg">
+                        <div>
+                            <div class="text-xl font-bold text-green-400">${window.PersianCRM.utils.toPersianNumbers(newCustomers.toString())}</div>
+                            <div class="text-sm text-gray-400">مشتریان جدید (هفته)</div>
+                        </div>
+                        <i class="fas fa-user-plus text-2xl text-green-400"></i>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Create reminders widget
+        function createRemindersWidget() {
+            const today = new Date();
+            const todayReminders = reminders.filter(r => {
+                const reminderDate = new Date(r.when);
+                return reminderDate.toDateString() === today.toDateString() && r.status === 'active';
+            });
+            
+            const overdueReminders = reminders.filter(r => {
+                const reminderDate = new Date(r.when);
+                return reminderDate < today && r.status === 'active';
+            });
+            
+            return `
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between p-3 bg-yellow-900 bg-opacity-30 rounded-lg">
+                        <div>
+                            <div class="text-xl font-bold text-yellow-400">${window.PersianCRM.utils.toPersianNumbers(todayReminders.length.toString())}</div>
+                            <div class="text-sm text-gray-400">یادآوری امروز</div>
+                        </div>
+                        <i class="fas fa-calendar-day text-2xl text-yellow-400"></i>
+                    </div>
+                    
+                    <div class="flex items-center justify-between p-3 bg-red-900 bg-opacity-30 rounded-lg">
+                        <div>
+                            <div class="text-xl font-bold text-red-400">${window.PersianCRM.utils.toPersianNumbers(overdueReminders.length.toString())}</div>
+                            <div class="text-sm text-gray-400">سررسید گذشته</div>
+                        </div>
+                        <i class="fas fa-exclamation-triangle text-2xl text-red-400"></i>
+                    </div>
+                    
+                    <div class="flex items-center justify-between p-3 bg-blue-900 bg-opacity-30 rounded-lg">
+                        <div>
+                            <div class="text-xl font-bold text-blue-400">${window.PersianCRM.utils.toPersianNumbers(reminders.filter(r => r.status === 'active').length.toString())}</div>
+                            <div class="text-sm text-gray-400">در انتظار</div>
+                        </div>
+                        <i class="fas fa-clock text-2xl text-blue-400"></i>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Create financial widget
+        function createFinancialWidget() {
+            const income = transactions
+                .filter(t => t.type === 'income' && t.status === 'paid')
+                .reduce((sum, t) => sum + t.amount, 0);
+            
+            const expenses = transactions
+                .filter(t => t.type === 'expense' && t.status === 'paid')
+                .reduce((sum, t) => sum + t.amount, 0);
+            
+            const balance = income - expenses;
+            
+            return `
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between p-3 bg-green-900 bg-opacity-30 rounded-lg">
+                        <div>
+                            <div class="text-xl font-bold text-green-400">${window.PersianCRM.formatCurrency(income)}</div>
+                            <div class="text-sm text-gray-400">کل درآمد</div>
+                        </div>
+                        <i class="fas fa-arrow-up text-2xl text-green-400"></i>
+                    </div>
+                    
+                    <div class="flex items-center justify-between p-3 bg-red-900 bg-opacity-30 rounded-lg">
+                        <div>
+                            <div class="text-xl font-bold text-red-400">${window.PersianCRM.formatCurrency(expenses)}</div>
+                            <div class="text-sm text-gray-400">کل هزینه‌ها</div>
+                        </div>
+                        <i class="fas fa-arrow-down text-2xl text-red-400"></i>
+                    </div>
+                    
+                    <div class="flex items-center justify-between p-3 ${balance >= 0 ? 'bg-green-900' : 'bg-red-900'} bg-opacity-30 rounded-lg">
+                        <div>
+                            <div class="text-xl font-bold ${balance >= 0 ? 'text-green-400' : 'text-red-400'}">${window.PersianCRM.formatCurrency(Math.abs(balance))}</div>
+                            <div class="text-sm text-gray-400">${balance >= 0 ? 'سود' : 'ضرر'}</div>
+                        </div>
+                        <i class="fas fa-wallet text-2xl ${balance >= 0 ? 'text-green-400' : 'text-red-400'}"></i>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Create team performance widget
+        function createTeamPerformanceWidget() {
+            const performanceData = [
+                { name: 'علی احمدی', sales: 45, calls: 32, meetings: 12 },
+                { name: 'زهرا محمدی', sales: 38, calls: 28, meetings: 15 },
+                { name: 'رضا کریمی', sales: 42, calls: 35, meetings: 10 }
+            ];
+            
+            return `
+                <div class="space-y-3">
+                    ${performanceData.map(member => `
+                        <div class="p-3 bg-gray-700 rounded-lg">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="font-medium text-white">${member.name}</span>
+                                <span class="text-sm text-gold">${member.sales} فروش</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4 text-sm">
+                                <div class="flex items-center space-x-2">
+                                    <i class="fas fa-phone text-blue-400"></i>
+                                    <span class="text-gray-300">${member.calls} تماس</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <i class="fas fa-handshake text-green-400"></i>
+                                    <span class="text-gray-300">${member.meetings} قرار</span>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+        
+        // Create monthly goals widget
+        function createMonthlyGoalsWidget() {
+            const goals = [
+                { title: 'هدف فروش ماهانه', current: 85, target: 100, unit: '٪' },
+                { title: 'هدف مشتریان جدید', current: 12, target: 20, unit: 'نفر' },
+                { title: 'هدف تماس‌های تلفنی', current: 156, target: 200, unit: 'تماس' }
+            ];
+            
+            return `
+                <div class="space-y-4">
+                    ${goals.map(goal => {
+                        const percentage = Math.min((goal.current / goal.target) * 100, 100);
+                        return `
+                            <div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="font-medium text-white">${goal.title}</span>
+                                    <span class="text-sm text-gold">${window.PersianCRM.utils.toPersianNumbers(goal.current.toString())} / ${window.PersianCRM.utils.toPersianNumbers(goal.target.toString())} ${goal.unit}</span>
+                                </div>
+                                <div class="performance-indicator">
+                                    <div class="performance-bar" style="width: ${percentage}%"></div>
+                                </div>
+                                <div class="text-xs text-gray-400 mt-1">${window.PersianCRM.utils.toPersianNumbers(percentage.toFixed(0))}٪ پیشرفت</div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+        
+        // Initialize charts
+        function initializeCharts() {
+            initializeSalesChart();
+        }
+        
+        // Initialize sales chart
+        function initializeSalesChart() {
+            const chartDom = document.getElementById('dashboard-sales-chart');
+            if (!chartDom) return;
+            
+            const myChart = echarts.init(chartDom);
+            
+            // Generate sample data for the last 30 days
+            const dates = [];
+            const salesData = [];
+            const targetData = [];
+            
+            for (let i = 29; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                dates.push(date.toLocaleDateString('fa-IR'));
+                
+                // Generate realistic sales data
+                const baseAmount = 50000000;
+                const variation = (Math.random() - 0.5) * 40000000;
+                salesData.push(Math.max(10000000, baseAmount + variation));
+                targetData.push(60000000);
+            }
+            
+            const option = {
+                backgroundColor: 'transparent',
+                textStyle: {
+                    color: '#ffffff'
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    backgroundColor: '#1f2937',
+                    borderColor: '#d4af37',
+                    textStyle: {
+                        color: '#ffffff'
+                    }
+                },
+                legend: {
+                    data: ['فروش واقعی', 'هدف فروش'],
+                    textStyle: {
+                        color: '#ffffff'
+                    }
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    boundaryGap: false,
+                    data: dates,
+                    axisLine: {
+                        lineStyle: {
+                            color: '#6b7280'
+                        }
+                    },
+                    axisLabel: {
+                        color: '#9ca3af'
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    axisLine: {
+                        lineStyle: {
+                            color: '#6b7280'
+                        }
+                    },
+                    axisLabel: {
+                        color: '#9ca3af',
+                        formatter: function(value) {
+                            return (value / 1000000).toFixed(0) + 'M';
+                        }
+                    }
+                },
+                series: [
+                    {
+                        name: 'فروش واقعی',
+                        type: 'line',
+                        data: salesData,
+                        smooth: true,
+                        lineStyle: {
+                            color: '#d4af37',
+                            width: 3
+                        },
+                        itemStyle: {
+                            color: '#d4af37'
+                        },
+                        areaStyle: {
+                            color: {
+                                type: 'linear',
+                                x: 0,
+                                y: 0,
+                                x2: 0,
+                                y2: 1,
+                                colorStops: [{
+                                    offset: 0, color: 'rgba(212, 175, 55, 0.3)'
+                                }, {
+                                    offset: 1, color: 'rgba(212, 175, 55, 0.1)'
+                                }]
+                            }
+                        }
+                    },
+                    {
+                        name: 'هدف فروش',
+                        type: 'line',
+                        data: targetData,
+                        smooth: true,
+                        lineStyle: {
+                            color: '#ef4444',
+                            width: 2,
+                            type: 'dashed'
+                        },
+                        itemStyle: {
+                            color: '#ef4444'
+                        }
+                    }
+                ]
+            };
+            
+            myChart.setOption(option);
+            
+            // Make chart responsive
+            window.addEventListener('resize', function() {
+                myChart.resize();
+            });
+        }
+        
+        // Toggle widget visibility
+        function toggleWidget(widgetId) {
+            widgets[widgetId].visible = !widgets[widgetId].visible;
+            renderDashboardWidgets();
+        }
+        
+        // Apply customization
+        function applyCustomization() {
+            Object.keys(widgets).forEach(widgetId => {
+                const checkbox = document.getElementById(`widget-${widgetId.replace('-', '_')}`);
+                if (checkbox) {
+                    widgets[widgetId].visible = checkbox.checked;
+                }
+            });
+            
+            renderDashboardWidgets();
+            window.crmApp.hideModal('customize-modal');
+            window.PersianCRM.showToast('تغییرات اعمال شد', 'success');
+        }
+        
+        // Reset customization
+        function resetCustomization() {
+            Object.keys(widgets).forEach(widgetId => {
+                widgets[widgetId].visible = true;
+                const checkbox = document.getElementById(`widget-${widgetId.replace('-', '_')}`);
+                if (checkbox) {
+                    checkbox.checked = true;
+                }
+            });
+            
+            renderDashboardWidgets();
+            window.PersianCRM.showToast('تنظیمات بازنشانی شد', 'info');
+        }
+        
+        // Export dashboard
+        function exportDashboard() {
+            const dashboardData = {
+                widgets: widgets,
+                customers: customers.length,
+                sales: sales.length,
+                reminders: reminders.length,
+                transactions: transactions.length,
+                exportDate: new Date().toISOString()
+            };
+            
+            const data = JSON.stringify(dashboardData, null, 2);
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `dashboard-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            window.PersianCRM.showToast('داشبورد دانلود شد', 'success');
+        }
+    </script>
+</body>
+</html>

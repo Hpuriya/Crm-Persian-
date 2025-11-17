@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM فارسی - داشبورد مدیریت ارتباط با مشتری</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Persian Fonts -->
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vazirmatn@33.0.3/Vazirmatn-font-face.min.css" rel="stylesheet">
+    
+    <!-- Animation Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/typed.js/2.0.12/typed.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.0/dist/echarts.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+    
+    <!-- Custom Styles -->
+    <style>
+        :root {
+            --royal-blue: #1e3a8a;
+            --royal-gold: #d4af37;
+            --dark-bg: #0a0a0a;
+            --card-bg: #1f2937;
+        }
+        
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background: var(--dark-bg);
+            color: #ffffff;
+        }
+        
+        .hero-bg {
+            background: linear-gradient(135deg, rgba(30, 58, 138, 0.1) 0%, rgba(212, 175, 55, 0.1) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-bg::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('hero-bg.jpg');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.3;
+            z-index: -1;
+        }
+        
+        .card-royal {
+            background: var(--card-bg);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .card-royal:hover {
+            border-color: var(--royal-gold);
+            box-shadow: 0 20px 40px rgba(212, 175, 55, 0.2);
+            transform: translateY(-4px);
+        }
+        
+        .btn-royal {
+            background: linear-gradient(135deg, var(--royal-blue) 0%, #3b82f6 100%);
+            border: 1px solid var(--royal-gold);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-royal:hover {
+            background: linear-gradient(135deg, #1e40af 0%, var(--royal-blue) 100%);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .text-gold {
+            color: var(--royal-gold);
+        }
+        
+        .text-blue-royal {
+            color: var(--royal-blue);
+        }
+        
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .animate-pulse-gold {
+            animation: pulse-gold 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse-gold {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, var(--royal-gold) 0%, #fbbf24 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .nav-glass {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+        }
+        
+        .search-container {
+            position: relative;
+        }
+        
+        .search-results {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            left: 0;
+            background: var(--card-bg);
+            border: 1px solid var(--royal-gold);
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 50;
+        }
+        
+        .market-card {
+            background: linear-gradient(135deg, rgba(30, 58, 138, 0.1) 0%, rgba(212, 175, 55, 0.1) 100%);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+        
+        .chart-container {
+            background: rgba(31, 41, 55, 0.8);
+            border-radius: 12px;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Background Canvas for Particles -->
+    <div id="background-canvas"></div>
+    
+    <!-- Navigation Header -->
+    <nav class="nav-glass fixed top-0 left-0 right-0 z-40">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex items-center space-x-4">
+                    <div class="text-2xl font-bold gradient-text">💎 CRM فارسی</div>
+                </div>
+                
+                <!-- Search Bar -->
+                <div class="flex-1 max-w-md mx-8">
+                    <div class="search-container">
+                        <div class="relative">
+                            <input 
+                                type="text" 
+                                id="global-search"
+                                placeholder="جستجوی مشتریان، فروش‌ها، یادآوری‌ها..."
+                                class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 pr-10 text-white placeholder-gray-400 focus:border-yellow-400 focus:outline-none"
+                            >
+                            <i class="fas fa-search absolute right-3 top-3 text-gray-400"></i>
+                        </div>
+                        <div id="search-results" class="search-results hidden"></div>
+                    </div>
+                </div>
+                
+                <!-- Date/Time Display -->
+                <div class="flex items-center space-x-6 text-sm">
+                    <div class="text-center">
+                        <div data-persian-date class="text-gold font-medium"></div>
+                        <div data-persian-time class="text-blue-300"></div>
+                    </div>
+                    
+                    <!-- User Avatar -->
+                    <div class="flex items-center space-x-2">
+                        <img src="user-avatar.jpg" alt="کاربر" class="w-8 h-8 rounded-full border-2 border-yellow-400">
+                        <span class="hidden md:block">مدیر سیستم</span>
+                    </div>
+                    
+                    <!-- Menu Toggle -->
+                    <button id="menu-toggle" class="p-2 rounded-lg hover:bg-gray-700 transition-colors">
+                        <i class="fas fa-bars text-gold"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Side Menu -->
+    <div id="side-menu" class="fixed top-0 right-0 h-full w-64 bg-gray-900 transform translate-x-full transition-transform duration-300 z-50">
+        <div class="p-4">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-bold text-gold">منو</h3>
+                <button id="menu-close" class="p-2 hover:bg-gray-700 rounded-lg">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <nav class="space-y-2">
+                <a href="index.html" class="flex items-center space-x-3 p-3 rounded-lg bg-blue-600 text-white">
+                    <i class="fas fa-home"></i>
+                    <span>صفحه اصلی</span>
+                </a>
+                <a href="customers.html" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-users"></i>
+                    <span>مشتریان</span>
+                </a>
+                <a href="sales.html" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-chart-line"></i>
+                    <span>فروش‌ها</span>
+                </a>
+                <a href="accounts.html" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-calculator"></i>
+                    <span>حساب‌ها</span>
+                </a>
+                <a href="reminders.html" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-bell"></i>
+                    <span>یادآوری‌ها</span>
+                </a>
+                <a href="dashboard.html" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>داشبورد</span>
+                </a>
+            </nav>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <main class="pt-20">
+        <!-- Hero Section -->
+        <section class="hero-bg min-h-screen flex items-center">
+            <div class="container mx-auto px-4">
+                <div class="text-center mb-12">
+                    <h1 class="text-5xl md:text-7xl font-bold mb-6 animate-fade-in">
+                        <span id="typed-text" class="gradient-text"></span>
+                    </h1>
+                    <p class="text-xl md:text-2xl text-gray-300 mb-8 animate-fade-in">
+                        سیستم مدیریت ارتباط با مشتری با پشتیبانی کامل از زبان فارسی و تقویم جلالی
+                    </p>
+                    <div class="flex flex-wrap justify-center gap-4 animate-fade-in">
+                        <button onclick="window.location.href='customers.html'" class="btn-royal px-8 py-3 rounded-lg font-medium">
+                            <i class="fas fa-users ml-2"></i>
+                            مشاهده مشتریان
+                        </button>
+                        <button onclick="window.location.href='sales.html'" class="bg-transparent border-2 border-yellow-400 text-yellow-400 px-8 py-3 rounded-lg font-medium hover:bg-yellow-400 hover:text-black transition-all">
+                            <i class="fas fa-chart-line ml-2"></i>
+                            ثبت فروش جدید
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Economic Summary Section -->
+        <section class="py-16">
+            <div class="container mx-auto px-4">
+                <h2 class="text-3xl font-bold text-center mb-12 gradient-text">
+                    <i class="fas fa-chart-pie ml-2"></i>
+                    وضعیت اقتصادی لحظه‌ای
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                    <!-- Gold Price Card -->
+                    <div class="market-card card-royal p-6 rounded-xl animate-fade-in">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gold">
+                                <i class="fas fa-coins ml-2"></i>
+                                قیمت طلا
+                            </h3>
+                            <div class="animate-pulse-gold">
+                                <i class="fas fa-circle text-xs"></i>
+                            </div>
+                        </div>
+                        <div id="gold-price" class="space-y-2">
+                            <div class="text-2xl font-bold text-white">
+                                <i class="fas fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-400 mt-2">
+                            به روز رسانی: لحظه‌ای
+                        </div>
+                    </div>
+                    
+                    <!-- USD Price Card -->
+                    <div class="market-card card-royal p-6 rounded-xl animate-fade-in">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gold">
+                                <i class="fas fa-dollar-sign ml-2"></i>
+                                قیمت دلار
+                            </h3>
+                            <div class="animate-pulse-gold">
+                                <i class="fas fa-circle text-xs"></i>
+                            </div>
+                        </div>
+                        <div id="usd-price" class="space-y-2">
+                            <div class="text-2xl font-bold text-white">
+                                <i class="fas fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-400 mt-2">
+                            به روز رسانی: لحظه‌ای
+                        </div>
+                    </div>
+                    
+                    <!-- Stock Market Card -->
+                    <div class="market-card card-royal p-6 rounded-xl animate-fade-in">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gold">
+                                <i class="fas fa-chart-area ml-2"></i>
+                                بورس تهران
+                            </h3>
+                            <div class="animate-pulse-gold">
+                                <i class="fas fa-circle text-xs"></i>
+                            </div>
+                        </div>
+                        <div id="stock-price" class="space-y-2">
+                            <div class="text-2xl font-bold text-white">
+                                <i class="fas fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-400 mt-2">
+                            به روز رسانی: لحظه‌ای
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Market Trend Chart -->
+                <div class="chart-container p-6 animate-fade-in">
+                    <h3 class="text-xl font-semibold mb-4 text-gold">
+                        <i class="fas fa-chart-line ml-2"></i>
+                        روند بازار در ۷ روز اخیر
+                    </h3>
+                    <div id="market-chart" style="height: 400px;"></div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Quick Actions Section -->
+        <section class="py-16 bg-gray-900">
+            <div class="container mx-auto px-4">
+                <h2 class="text-3xl font-bold text-center mb-12 gradient-text">
+                    <i class="fas fa-bolt ml-2"></i>
+                    دسترسی سریع
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Add Customer -->
+                    <div class="card-royal card-animated p-6 rounded-xl text-center cursor-pointer" onclick="window.crmApp.showModal('add-customer-modal')">
+                        <div class="text-4xl text-gold mb-4 animate-float">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold mb-2">افزودن مشتری</h3>
+                        <p class="text-gray-400 text-sm">ثبت مشتری جدید در سیستم</p>
+                    </div>
+                    
+                    <!-- New Sale -->
+                    <div class="card-royal card-animated p-6 rounded-xl text-center cursor-pointer" onclick="window.location.href='sales.html'">
+                        <div class="text-4xl text-gold mb-4 animate-float">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold mb-2">فروش جدید</h3>
+                        <p class="text-gray-400 text-sm">ثبت فروش و صدور فاکتور</p>
+                    </div>
+                    
+                    <!-- Add Transaction -->
+                    <div class="card-royal card-animated p-6 rounded-xl text-center cursor-pointer" onclick="window.location.href='accounts.html'">
+                        <div class="text-4xl text-gold mb-4 animate-float">
+                            <i class="fas fa-money-bill-wave"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold mb-2">تراکنش مالی</h3>
+                        <p class="text-gray-400 text-sm">ثبت درآمد یا هزینه جدید</p>
+                    </div>
+                    
+                    <!-- Set Reminder -->
+                    <div class="card-royal card-animated p-6 rounded-xl text-center cursor-pointer" onclick="window.location.href='reminders.html'">
+                        <div class="text-4xl text-gold mb-4 animate-float">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold mb-2">یادآوری جدید</h3>
+                        <p class="text-gray-400 text-sm">تنظیم یادآوری برای مشتری</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Statistics Section -->
+        <section class="py-16">
+            <div class="container mx-auto px-4">
+                <h2 class="text-3xl font-bold text-center mb-12 gradient-text">
+                    <i class="fas fa-chart-pie ml-2"></i>
+                    آمار کلی سیستم
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="card-royal p-6 rounded-xl text-center animate-fade-in">
+                        <div class="text-3xl font-bold text-gold mb-2" id="total-customers">-</div>
+                        <div class="text-gray-400">تعداد مشتریان</div>
+                    </div>
+                    
+                    <div class="card-royal p-6 rounded-xl text-center animate-fade-in">
+                        <div class="text-3xl font-bold text-gold mb-2" id="total-sales">-</div>
+                        <div class="text-gray-400">فروش امروز</div>
+                    </div>
+                    
+                    <div class="card-royal p-6 rounded-xl text-center animate-fade-in">
+                        <div class="text-3xl font-bold text-gold mb-2" id="total-reminders">-</div>
+                        <div class="text-gray-400">یادآوری‌های فعال</div>
+                    </div>
+                    
+                    <div class="card-royal p-6 rounded-xl text-center animate-fade-in">
+                        <div class="text-3xl font-bold text-gold mb-2" id="monthly-revenue">-</div>
+                        <div class="text-gray-400">درآمد ماه جاری</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <!-- Add Customer Modal -->
+    <div id="add-customer-modal" class="modal fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="modal-content bg-gray-800 rounded-xl p-6 w-full max-w-md">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-gold">افزودن مشتری جدید</h3>
+                    <button class="modal-close text-gray-400 hover:text-white">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <form id="add-customer-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">نام</label>
+                        <input type="text" name="firstName" required class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:border-yellow-400 focus:outline-none">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">نام خانوادگی</label>
+                        <input type="text" name="lastName" required class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:border-yellow-400 focus:outline-none">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">تلفن</label>
+                        <input type="tel" name="phone" required class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:border-yellow-400 focus:outline-none">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">ایمیل (اختیاری)</label>
+                        <input type="email" name="email" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:border-yellow-400 focus:outline-none">
+                    </div>
+                    
+                    <div class="flex space-x-3 pt-4">
+                        <button type="submit" class="btn-royal flex-1 py-2 rounded-lg font-medium">
+                            افزودن مشتری
+                        </button>
+                        <button type="button" class="modal-close bg-gray-600 flex-1 py-2 rounded-lg font-medium hover:bg-gray-500 transition-colors">
+                            انصراف
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="bg-gray-900 border-t border-gray-700 py-8">
+        <div class="container mx-auto px-4 text-center">
+            <div class="text-gold mb-2">💎 CRM فارسی - نسخه 1.0</div>
+            <div class="text-gray-400 text-sm">
+                © 1403 تمامی حقوق محفوظ است - طراحی شده با ❤️ برای کسب‌وکارهای فارسی‌زبان
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Scripts -->
+    <script src="main.js"></script>
+    
+    <script>
+        // Initialize market chart
+        document.addEventListener('DOMContentLoaded', function() {
+            const chartDom = document.getElementById('market-chart');
+            const myChart = echarts.init(chartDom);
+            
+            // Generate sample data for the last 7 days
+            const dates = [];
+            const goldData = [];
+            const usdData = [];
+            const stockData = [];
+            
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                dates.push(date.toLocaleDateString('fa-IR'));
+                
+                goldData.push(2100000 + Math.random() * 100000);
+                usdData.push(45000 + Math.random() * 2000);
+                stockData.push(1500000 + Math.random() * 100000);
+            }
+            
+            const option = {
+                backgroundColor: 'transparent',
+                textStyle: {
+                    color: '#ffffff'
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    backgroundColor: '#1f2937',
+                    borderColor: '#d4af37',
+                    textStyle: {
+                        color: '#ffffff'
+                    }
+                },
+                legend: {
+                    data: ['طلا', 'دلار', 'بورس'],
+                    textStyle: {
+                        color: '#ffffff'
+                    },
+                    top: 10
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    boundaryGap: false,
+                    data: dates,
+                    axisLine: {
+                        lineStyle: {
+                            color: '#6b7280'
+                        }
+                    },
+                    axisLabel: {
+                        color: '#9ca3af'
+                    }
+                },
+                yAxis: [
+                    {
+                        type: 'value',
+                        name: 'قیمت (تومان)',
+                        position: 'left',
+                        axisLine: {
+                            lineStyle: {
+                                color: '#6b7280'
+                            }
+                        },
+                        axisLabel: {
+                            color: '#9ca3af',
+                            formatter: function(value) {
+                                return (value / 1000000).toFixed(1) + 'M';
+                            }
+                        }
+                    }
+                ],
+                series: [
+                    {
+                        name: 'طلا',
+                        type: 'line',
+                        data: goldData,
+                        smooth: true,
+                        lineStyle: {
+                            color: '#d4af37',
+                            width: 3
+                        },
+                        itemStyle: {
+                            color: '#d4af37'
+                        },
+                        areaStyle: {
+                            color: {
+                                type: 'linear',
+                                x: 0,
+                                y: 0,
+                                x2: 0,
+                                y2: 1,
+                                colorStops: [{
+                                    offset: 0, color: 'rgba(212, 175, 55, 0.3)'
+                                }, {
+                                    offset: 1, color: 'rgba(212, 175, 55, 0.1)'
+                                }]
+                            }
+                        }
+                    },
+                    {
+                        name: 'دلار',
+                        type: 'line',
+                        data: usdData,
+                        smooth: true,
+                        lineStyle: {
+                            color: '#1e3a8a',
+                            width: 3
+                        },
+                        itemStyle: {
+                            color: '#1e3a8a'
+                        },
+                        areaStyle: {
+                            color: {
+                                type: 'linear',
+                                x: 0,
+                                y: 0,
+                                x2: 0,
+                                y2: 1,
+                                colorStops: [{
+                                    offset: 0, color: 'rgba(30, 58, 138, 0.3)'
+                                }, {
+                                    offset: 1, color: 'rgba(30, 58, 138, 0.1)'
+                                }]
+                            }
+                        }
+                    },
+                    {
+                        name: 'بورس',
+                        type: 'line',
+                        data: stockData,
+                        smooth: true,
+                        lineStyle: {
+                            color: '#10b981',
+                            width: 3
+                        },
+                        itemStyle: {
+                            color: '#10b981'
+                        },
+                        areaStyle: {
+                            color: {
+                                type: 'linear',
+                                x: 0,
+                                y: 0,
+                                x2: 0,
+                                y2: 1,
+                                colorStops: [{
+                                    offset: 0, color: 'rgba(16, 185, 129, 0.3)'
+                                }, {
+                                    offset: 1, color: 'rgba(16, 185, 129, 0.1)'
+                                }]
+                            }
+                        }
+                    }
+                ]
+            };
+            
+            myChart.setOption(option);
+            
+            // Make chart responsive
+            window.addEventListener('resize', function() {
+                myChart.resize();
+            });
+        });
+        
+        // Update statistics
+        async function updateStatistics() {
+            try {
+                const customers = await window.PersianCRM.storage.getCustomers();
+                const sales = await window.PersianCRM.storage.getSales();
+                const reminders = await window.PersianCRM.storage.getReminders();
+                
+                document.getElementById('total-customers').textContent = 
+                    window.PersianCRM.utils.toPersianNumbers(customers.length.toString());
+                document.getElementById('total-sales').textContent = 
+                    window.PersianCRM.utils.toPersianNumbers(sales.length.toString());
+                document.getElementById('total-reminders').textContent = 
+                    window.PersianCRM.utils.toPersianNumbers(reminders.filter(r => r.status === 'active').length.toString());
+                
+                // Calculate monthly revenue (mock data)
+                const monthlyRevenue = sales.reduce((sum, sale) => sum + (sale.total || 0), 0);
+                document.getElementById('monthly-revenue').textContent = 
+                    window.PersianCRM.formatCurrency(monthlyRevenue);
+            } catch (error) {
+                console.error('Error updating statistics:', error);
+            }
+        }
+        
+        // Handle add customer form
+        document.getElementById('add-customer-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const customer = {
+                firstName: formData.get('firstName'),
+                lastName: formData.get('lastName'),
+                phone: formData.get('phone'),
+                email: formData.get('email'),
+                tags: [],
+                notes: []
+            };
+            
+            try {
+                await window.PersianCRM.storage.addCustomer(customer);
+                window.PersianCRM.showToast('مشتری با موفقیت افزوده شد', 'success');
+                window.crmApp.hideModal('add-customer-modal');
+                e.target.reset();
+                updateStatistics();
+            } catch (error) {
+                window.PersianCRM.showToast('خطا در افزودن مشتری', 'error');
+            }
+        });
+        
+        // Update statistics on page load
+        updateStatistics();
+        
+        // Menu close functionality
+        document.getElementById('menu-close').addEventListener('click', function() {
+            document.getElementById('side-menu').classList.add('translate-x-full');
+        });
+    </script>
+</body>
+</html>

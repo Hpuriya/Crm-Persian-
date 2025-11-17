@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مدیریت مشتریان - CRM فارسی</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Persian Fonts -->
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vazirmatn@33.0.3/Vazirmatn-font-face.min.css" rel="stylesheet">
+    
+    <!-- Animation Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+    
+    <!-- Custom Styles -->
+    <style>
+        :root {
+            --royal-blue: #1e3a8a;
+            --royal-gold: #d4af37;
+            --dark-bg: #0a0a0a;
+            --card-bg: #1f2937;
+        }
+        
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background: var(--dark-bg);
+            color: #ffffff;
+        }
+        
+        .card-royal {
+            background: var(--card-bg);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .card-royal:hover {
+            border-color: var(--royal-gold);
+            box-shadow: 0 20px 40px rgba(212, 175, 55, 0.2);
+            transform: translateY(-4px);
+        }
+        
+        .btn-royal {
+            background: linear-gradient(135deg, var(--royal-blue) 0%, #3b82f6 100%);
+            border: 1px solid var(--royal-gold);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-royal:hover {
+            background: linear-gradient(135deg, #1e40af 0%, var(--royal-blue) 100%);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .text-gold {
+            color: var(--royal-gold);
+        }
+        
+        .nav-glass {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+        }
+        
+        .customer-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .customer-card:hover {
+            border-color: var(--royal-gold);
+            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .customer-card.expanded {
+            border-color: var(--royal-gold);
+            box-shadow: 0 15px 40px rgba(212, 175, 55, 0.3);
+        }
+        
+        .tag {
+            background: rgba(212, 175, 55, 0.2);
+            color: var(--royal-gold);
+            border: 1px solid rgba(212, 175, 55, 0.4);
+        }
+        
+        .search-container {
+            position: relative;
+        }
+        
+        .filter-dropdown {
+            background: var(--card-bg);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+        
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+        }
+        
+        .table-row:hover {
+            background: rgba(212, 175, 55, 0.1);
+        }
+        
+        .view-toggle {
+            background: var(--card-bg);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+        
+        .view-toggle.active {
+            background: var(--royal-blue);
+            border-color: var(--royal-gold);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Background Canvas for Particles -->
+    <div id="background-canvas"></div>
+    
+    <!-- Navigation Header -->
+    <nav class="nav-glass fixed top-0 left-0 right-0 z-40">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex items-center space-x-4">
+                    <div class="text-2xl font-bold text-gold">💎 CRM فارسی</div>
+                </div>
+                
+                <!-- Search Bar -->
+                <div class="flex-1 max-w-md mx-8">
+                    <div class="search-container">
+                        <div class="relative">
+                            <input 
+                                type="text" 
+                                id="customer-search"
+                                placeholder="جستجوی مشتری..."
+                                class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 pr-10 text-white placeholder-gray-400 focus:border-yellow-400 focus:outline-none"
+                            >
+                            <i class="fas fa-search absolute right-3 top-3 text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Date/Time Display -->
+                <div class="flex items-center space-x-6 text-sm">
+                    <div class="text-center">
+                        <div data-persian-date class="text-gold font-medium"></div>
+                        <div data-persian-time class="text-blue-300"></div>
+                    </div>
+                    
+                    <!-- User Avatar -->
+                    <div class="flex items-center space-x-2">
+                        <img src="resources/user-avatar.jpg" alt="کاربر" class="w-8 h-8 rounded-full border-2 border-yellow-400">
+                        <span class="hidden md:block">مدیر سیستم</span>
+                    </div>
+                    
+                    <!-- Menu Toggle -->
+                    <button id="menu-toggle" class="p-2 rounded-lg hover:bg-gray-700 transition-colors">
+                        <i class="fas fa-bars text-gold"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Side Menu -->
+    <div id="side-menu" class="fixed top-0 right-0 h-full w-64 bg-gray-900 transform translate-x-full transition-transform duration-300 z-50">
+        <div class="p-4">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-bold text-gold">منو</h3>
+                <button id="menu-close" class="p-2 hover:bg-gray-700 rounded-lg">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <nav class="space-y-2">
+                <a href="index.html" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-home"></i>
+                    <span>صفحه اصلی</span>
+                </a>
+                <a href="customers.html" class="flex items-center space-x-3 p-3 rounded-lg bg-blue-600 text-white">
+                    <i class="fas fa-users"></i>
+                    <span>مشتریان</span>
+                </a>
+                <a href="sales.html" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-chart-line"></i>
+                    <span>فروش‌ها</span>
+                </a>
+                <a href="accounts.html" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-calculator"></i>
+                    <span>حساب‌ها</span>
+                </a>
+                <a href="reminders.html" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-bell"></i>
+                    <span>یادآوری‌ها</span>
+                </a>
+                <a href="dashboard.html" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>داشبورد</span>
+                </a>
+            </nav>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <main class="pt-20">
+        <!-- Page Header -->
+        <section class="py-8">
+            <div class="container mx-auto px-4">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                    <div class="mb-4 md:mb-0">
+                        <h1 class="text-3xl font-bold text-gold mb-2">
+                            <i class="fas fa-users ml-2"></i>
+                            مدیریت مشتریان
+                        </h1>
+                        <p class="text-gray-400">مدیریت کامل اطلاعات مشتریان و ارتباطات</p>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <!-- View Toggle -->
+                        <div class="flex rounded-lg view-toggle">
+                            <button id="card-view-btn" class="px-4 py-2 rounded-l-lg view-toggle active">
+                                <i class="fas fa-th-large"></i>
+                            </button>
+                            <button id="table-view-btn" class="px-4 py-2 rounded-r-lg view-toggle">
+                                <i class="fas fa-table"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Add Customer Button -->
+                        <button onclick="window.crmApp.showModal('add-customer-modal')" class="btn-royal px-6 py-2 rounded-lg font-medium">
+                            <i class="fas fa-plus ml-2"></i>
+                            افزودن مشتری
+                        </button>
+                        
+                        <!-- Export Button -->
+                        <button onclick="exportCustomers()" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg font-medium transition-colors">
+                            <i class="fas fa-download ml-2"></i>
+                            خروجی
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Filters Section -->
+        <section class="py-4 bg-gray-900">
+            <div class="container mx-auto px-4">
+                <div class="flex flex-wrap items-center gap-4">
+                    <!-- Filter by Tags -->
+                    <div class="flex items-center space-x-2">
+                        <label class="text-sm text-gray-400">برچسب:</label>
+                        <select id="tag-filter" class="bg-gray-800 border border-gray-600 rounded-lg px-3 py-1 text-white text-sm focus:border-yellow-400 focus:outline-none">
+                            <option value="">همه برچسب‌ها</option>
+                            <option value="VIP">VIP</option>
+                            <option value="عادی">عادی</option>
+                            <option value="جدید">جدید</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Filter by Date -->
+                    <div class="flex items-center space-x-2">
+                        <label class="text-sm text-gray-400">تاریخ ثبت:</label>
+                        <select id="date-filter" class="bg-gray-800 border border-gray-600 rounded-lg px-3 py-1 text-white text-sm focus:border-yellow-400 focus:outline-none">
+                            <option value="">همه تاریخ‌ها</option>
+                            <option value="today">امروز</option>
+                            <option value="week">این هفته</option>
+                            <option value="month">این ماه</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Sort Options -->
+                    <div class="flex items-center space-x-2">
+                        <label class="text-sm text-gray-400">مرتب‌سازی:</label>
+                        <select id="sort-options" class="bg-gray-800 border border-gray-600 rounded-lg px-3 py-1 text-white text-sm focus:border-yellow-400 focus:outline-none">
+                            <option value="name">بر اساس نام</option>
+                            <option value="date">بر اساس تاریخ</option>
+                            <option value="last-contact">آخرین تماس</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Clear Filters -->
+                    <button onclick="clearFilters()" class="text-yellow-400 hover:text-yellow-300 text-sm">
+                        <i class="fas fa-times ml-1"></i>
+                        پاک کردن فیلترها
+                    </button>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Customers List -->
+        <section class="py-8">
+            <div class="container mx-auto px-4">
+                <!-- Card View -->
+                <div id="card-view" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Customer cards will be dynamically generated -->
+                </div>
+                
+                <!-- Table View -->
+                <div id="table-view" class="hidden">
+                    <div class="card-royal rounded-xl overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-gray-800">
+                                    <tr>
+                                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">مشتری</th>
+                                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">تماس</th>
+                                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">برچسب‌ها</th>
+                                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">تاریخ ثبت</th>
+                                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">عملیات</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="customers-table-body" class="divide-y divide-gray-700">
+                                    <!-- Table rows will be dynamically generated -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Empty State -->
+                <div id="empty-state" class="hidden text-center py-12">
+                    <div class="text-6xl text-gray-600 mb-4">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-400 mb-2">هیچ مشتری یافت نشد</h3>
+                    <p class="text-gray-500 mb-6">برای شروع، مشتری جدیدی اضافه کنید</p>
+                    <button onclick="window.crmApp.showModal('add-customer-modal')" class="btn-royal px-6 py-3 rounded-lg font-medium">
+                        <i class="fas fa-plus ml-2"></i>
+                        افزودن اولین مشتری
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <!-- Add Customer Modal -->
+    <div id="add-customer-modal" class="modal fixed inset-0 modal-overlay z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="modal-content bg-gray-800 rounded-xl p-6 w-full max-w-md">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-gold">افزودن مشتری جدید</h3>
+                    <button class="modal-close text-gray-400 hover:text-white">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <form id="add-customer-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">نام</label>
+                        <input type="text" name="firstName" required class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:border-yellow-400 focus:outline-none">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">نام خانوادگی</label>
+                        <input type="text" name="lastName" required class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:border-yellow-400 focus:outline-none">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">تلفن</label>
+                        <input type="tel" name="phone" required class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:border-yellow-400 focus:outline-none">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">ایمیل (اختیاری)</label>
+                        <input type="email" name="email" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:border-yellow-400 focus:outline-none">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">برچسب‌ها (با کاما جدا کنید)</label>
+                        <input type="text" name="tags" placeholder="مثال: VIP, جدید, معتبر" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:border-yellow-400 focus:outline-none">
+                    </div>
+                    
+                    <div class="flex space-x-3 pt-4">
+                        <button type="submit" class="btn-royal flex-1 py-2 rounded-lg font-medium">
+                            افزودن مشتری
+                        </button>
+                        <button type="button" class="modal-close bg-gray-600 flex-1 py-2 rounded-lg font-medium hover:bg-gray-500 transition-colors">
+                            انصراف
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Customer Detail Modal -->
+    <div id="customer-detail-modal" class="modal fixed inset-0 modal-overlay z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="modal-content bg-gray-800 rounded-xl p-6 w-full max-w-2xl max-h-screen overflow-y-auto">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-2xl font-bold text-gold">جزئیات مشتری</h3>
+                    <button class="modal-close text-gray-400 hover:text-white">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div id="customer-detail-content">
+                    <!-- Customer details will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="bg-gray-900 border-t border-gray-700 py-8">
+        <div class="container mx-auto px-4 text-center">
+            <div class="text-gold mb-2">💎 CRM فارسی - نسخه 1.0</div>
+            <div class="text-gray-400 text-sm">
+                © 1403 تمامی حقوق محفوظ است - طراحی شده با ❤️ برای کسب‌وکارهای فارسی‌زبان
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Scripts -->
+    <script src="main.js"></script>
+    
+    <script>
+        let customers = [];
+        let filteredCustomers = [];
+        let currentView = 'card';
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', async function() {
+            await loadCustomers();
+            initializeEventListeners();
+            renderCustomers();
+        });
+        
+        // Load customers from storage
+        async function loadCustomers() {
+            try {
+                customers = await window.PersianCRM.storage.getCustomers();
+                filteredCustomers = [...customers];
+                
+                // Add some sample data if no customers exist
+                if (customers.length === 0) {
+                    await addSampleCustomers();
+                    customers = await window.PersianCRM.storage.getCustomers();
+                    filteredCustomers = [...customers];
+                }
+            } catch (error) {
+                console.error('Error loading customers:', error);
+                window.PersianCRM.showToast('خطا در بارگذاری مشتریان', 'error');
+            }
+        }
+        
+        // Add sample customers for demo
+        async function addSampleCustomers() {
+            const sampleCustomers = [
+                {
+                    firstName: 'علی',
+                    lastName: 'احمدی',
+                    phone: '09123456789',
+                    email: 'ali@example.com',
+                    tags: ['VIP', 'معتبر'],
+                    notes: [{id: 'n1', text: 'مشتری ویژه - تخفیف 20٪', createdAt: '1403-08-15'}]
+                },
+                {
+                    firstName: 'زهرا',
+                    lastName: 'محمدی',
+                    phone: '09129876543',
+                    email: 'zahra@example.com',
+                    tags: ['جدید'],
+                    notes: []
+                },
+                {
+                    firstName: 'رضا',
+                    lastName: 'کریمی',
+                    phone: '09121234567',
+                    email: 'reza@example.com',
+                    tags: ['عادی'],
+                    notes: []
+                }
+            ];
+            
+            for (const customer of sampleCustomers) {
+                await window.PersianCRM.storage.addCustomer(customer);
+            }
+        }
+        
+        // Initialize event listeners
+        function initializeEventListeners() {
+            // View toggle
+            document.getElementById('card-view-btn').addEventListener('click', () => switchView('card'));
+            document.getElementById('table-view-btn').addEventListener('click', () => switchView('table'));
+            
+            // Search
+            document.getElementById('customer-search').addEventListener('input', handleSearch);
+            
+            // Filters
+            document.getElementById('tag-filter').addEventListener('change', applyFilters);
+            document.getElementById('date-filter').addEventListener('change', applyFilters);
+            document.getElementById('sort-options').addEventListener('change', applySorting);
+            
+            // Add customer form
+            document.getElementById('add-customer-form').addEventListener('submit', handleAddCustomer);
+            
+            // Menu close
+            document.getElementById('menu-close').addEventListener('click', function() {
+                document.getElementById('side-menu').classList.add('translate-x-full');
+            });
+        }
+        
+        // Switch between card and table view
+        function switchView(view) {
+            currentView = view;
+            
+            const cardView = document.getElementById('card-view');
+            const tableView = document.getElementById('table-view');
+            const cardBtn = document.getElementById('card-view-btn');
+            const tableBtn = document.getElementById('table-view-btn');
+            
+            if (view === 'card') {
+                cardView.classList.remove('hidden');
+                tableView.classList.add('hidden');
+                cardBtn.classList.add('active');
+                tableBtn.classList.remove('active');
+            } else {
+                cardView.classList.add('hidden');
+                tableView.classList.remove('hidden');
+                cardBtn.classList.remove('active');
+                tableBtn.classList.add('active');
+            }
+            
+            renderCustomers();
+        }
+        
+        // Handle search
+        function handleSearch(e) {
+            const query = e.target.value.toLowerCase();
+            
+            if (query === '') {
+                filteredCustomers = [...customers];
+            } else {
+                filteredCustomers = customers.filter(customer => 
+                    customer.firstName.toLowerCase().includes(query) ||
+                    customer.lastName.toLowerCase().includes(query) ||
+                    customer.phone.includes(query) ||
+                    (customer.email && customer.email.toLowerCase().includes(query))
+                );
+            }
+            
+            applyFilters();
+        }
+        
+        // Apply filters
+        function applyFilters() {
+            let filtered = [...filteredCustomers];
+            
+            // Tag filter
+            const tagFilter = document.getElementById('tag-filter').value;
+            if (tagFilter) {
+                filtered = filtered.filter(customer => 
+                    customer.tags && customer.tags.includes(tagFilter)
+                );
+            }
+            
+            // Date filter
+            const dateFilter = document.getElementById('date-filter').value;
+            if (dateFilter) {
+                const now = new Date();
+                let startDate;
+                
+                switch (dateFilter) {
+                    case 'today':
+                        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                        break;
+                    case 'week':
+                        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                        break;
+                    case 'month':
+                        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+                        break;
+                }
+                
+                if (startDate) {
+                    filtered = filtered.filter(customer => {
+                        const customerDate = new Date(customer.createdAt || customer.registrationDate);
+                        return customerDate >= startDate;
+                    });
+                }
+            }
+            
+            filteredCustomers = filtered;
+            applySorting();
+        }
+        
+        // Apply sorting
+        function applySorting() {
+            const sortOption = document.getElementById('sort-options').value;
+            
+            filteredCustomers.sort((a, b) => {
+                switch (sortOption) {
+                    case 'name':
+                        return a.firstName.localeCompare(b.firstName);
+                    case 'date':
+                        return new Date(b.createdAt || b.registrationDate) - new Date(a.createdAt || a.registrationDate);
+                    case 'last-contact':
+                        // Sort by last contact date (mock implementation)
+                        return Math.random() - 0.5;
+                    default:
+                        return 0;
+                }
+            });
+            
+            renderCustomers();
+        }
+        
+        // Clear all filters
+        function clearFilters() {
+            document.getElementById('customer-search').value = '';
+            document.getElementById('tag-filter').value = '';
+            document.getElementById('date-filter').value = '';
+            document.getElementById('sort-options').value = 'name';
+            
+            filteredCustomers = [...customers];
+            renderCustomers();
+        }
+        
+        // Render customers based on current view
+        function renderCustomers() {
+            if (filteredCustomers.length === 0) {
+                document.getElementById('card-view').classList.add('hidden');
+                document.getElementById('table-view').classList.add('hidden');
+                document.getElementById('empty-state').classList.remove('hidden');
+                return;
+            }
+            
+            document.getElementById('empty-state').classList.add('hidden');
+            
+            if (currentView === 'card') {
+                renderCardView();
+            } else {
+                renderTableView();
+            }
+        }
+        
+        // Render card view
+        function renderCardView() {
+            const container = document.getElementById('card-view');
+            container.innerHTML = '';
+            
+            filteredCustomers.forEach(customer => {
+                const card = createCustomerCard(customer);
+                container.appendChild(card);
+            });
+        }
+        
+        // Create customer card element
+        function createCustomerCard(customer) {
+            const card = document.createElement('div');
+            card.className = 'customer-card p-6 rounded-xl animate-fade-in';
+            card.onclick = () => showCustomerDetail(customer);
+            
+            const fullName = `${customer.firstName} ${customer.lastName}`;
+            const tagsHtml = customer.tags && customer.tags.length > 0 
+                ? customer.tags.map(tag => `<span class="tag px-2 py-1 rounded-full text-xs">${tag}</span>`).join(' ')
+                : '';
+            
+            card.innerHTML = `
+                <div class="flex items-start justify-between mb-4">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-12 h-12 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                            ${customer.firstName.charAt(0)}
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-white">${fullName}</h3>
+                            <p class="text-gray-400 text-sm">${customer.phone}</p>
+                        </div>
+                    </div>
+                    <div class="text-gray-500">
+                        <i class="fas fa-chevron-left"></i>
+                    </div>
+                </div>
+                
+                ${customer.email ? `<p class="text-gray-300 text-sm mb-3">${customer.email}</p>` : ''}
+                
+                ${tagsHtml ? `<div class="flex flex-wrap gap-2 mb-4">${tagsHtml}</div>` : ''}
+                
+                <div class="flex items-center justify-between text-sm text-gray-400">
+                    <span>
+                        <i class="fas fa-calendar ml-1"></i>
+                        ${customer.createdAt || 'تاریخ ثبت نامشخص'}
+                    </span>
+                    <div class="flex space-x-2">
+                        <button onclick="event.stopPropagation(); callCustomer('${customer.phone}')" class="text-green-400 hover:text-green-300">
+                            <i class="fas fa-phone"></i>
+                        </button>
+                        <button onclick="event.stopPropagation(); addReminder('${customer.id}')" class="text-blue-400 hover:text-blue-300">
+                            <i class="fas fa-bell"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            return card;
+        }
+        
+        // Render table view
+        function renderTableView() {
+            const tbody = document.getElementById('customers-table-body');
+            tbody.innerHTML = '';
+            
+            filteredCustomers.forEach(customer => {
+                const row = document.createElement('tr');
+                row.className = 'table-row cursor-pointer';
+                row.onclick = () => showCustomerDetail(customer);
+                
+                const fullName = `${customer.firstName} ${customer.lastName}`;
+                const tagsHtml = customer.tags && customer.tags.length > 0 
+                    ? customer.tags.map(tag => `<span class="tag px-2 py-1 rounded-full text-xs">${tag}</span>`).join(' ')
+                    : '';
+                
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center text-white font-bold mr-3">
+                                ${customer.firstName.charAt(0)}
+                            </div>
+                            <div>
+                                <div class="text-sm font-medium text-white">${fullName}</div>
+                                <div class="text-sm text-gray-400">${customer.email || 'ایمیل ثبت نشده'}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                        ${customer.phone}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        ${tagsHtml}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                        ${customer.createdAt || 'نامشخص'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div class="flex space-x-2">
+                            <button onclick="event.stopPropagation(); callCustomer('${customer.phone}')" class="text-green-400 hover:text-green-300">
+                                <i class="fas fa-phone"></i>
+                            </button>
+                            <button onclick="event.stopPropagation(); addReminder('${customer.id}')" class="text-blue-400 hover:text-blue-300">
+                                <i class="fas fa-bell"></i>
+                            </button>
+                            <button onclick="event.stopPropagation(); editCustomer('${customer.id}')" class="text-yellow-400 hover:text-yellow-300">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+        
+        // Show customer detail modal
+        function showCustomerDetail(customer) {
+            const modal = document.getElementById('customer-detail-modal');
+            const content = document.getElementById('customer-detail-content');
+            
+            const fullName = `${customer.firstName} ${customer.lastName}`;
+            const tagsHtml = customer.tags && customer.tags.length > 0 
+                ? customer.tags.map(tag => `<span class="tag px-3 py-1 rounded-full text-sm">${tag}</span>`).join(' ')
+                : '';
+            
+            const notesHtml = customer.notes && customer.notes.length > 0
+                ? customer.notes.map(note => `
+                    <div class="bg-gray-700 p-3 rounded-lg mb-2">
+                        <p class="text-sm text-gray-300">${note.text}</p>
+                        <p class="text-xs text-gray-500 mt-1">${note.createdAt}</p>
+                    </div>
+                `).join('')
+                : '<p class="text-gray-400 text-sm">یادداشتی وجود ندارد</p>';
+            
+            content.innerHTML = `
+                <div class="flex items-start space-x-4 mb-6">
+                    <div class="w-20 h-20 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center text-white font-bold text-2xl">
+                        ${customer.firstName.charAt(0)}
+                    </div>
+                    <div class="flex-1">
+                        <h2 class="text-2xl font-bold text-white mb-2">${fullName}</h2>
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            ${tagsHtml}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div class="bg-gray-700 p-4 rounded-lg">
+                        <h4 class="text-gold font-medium mb-2">
+                            <i class="fas fa-phone ml-2"></i>
+                            اطلاعات تماس
+                        </h4>
+                        <p class="text-white mb-2">${customer.phone}</p>
+                        ${customer.email ? `<p class="text-gray-300">${customer.email}</p>` : '<p class="text-gray-500">ایمیل ثبت نشده</p>'}
+                    </div>
+                    
+                    <div class="bg-gray-700 p-4 rounded-lg">
+                        <h4 class="text-gold font-medium mb-2">
+                            <i class="fas fa-calendar ml-2"></i>
+                            اطلاعات ثبت
+                        </h4>
+                        <p class="text-white">تاریخ ثبت: ${customer.createdAt || 'نامشخص'}</p>
+                        <p class="text-gray-300 text-sm">کد مشتری: ${customer.id}</p>
+                    </div>
+                </div>
+                
+                <div class="mb-6">
+                    <h4 class="text-gold font-medium mb-3">
+                        <i class="fas fa-sticky-note ml-2"></i>
+                        یادداشت‌ها
+                    </h4>
+                    ${notesHtml}
+                </div>
+                
+                <div class="flex flex-wrap gap-3 pt-4 border-t border-gray-600">
+                    <button onclick="callCustomer('${customer.phone}')" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg font-medium transition-colors">
+                        <i class="fas fa-phone ml-2"></i>
+                        تماس
+                    </button>
+                    <button onclick="addReminder('${customer.id}')" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-medium transition-colors">
+                        <i class="fas fa-bell ml-2"></i>
+                        یادآوری
+                    </button>
+                    <button onclick="addNote('${customer.id}')" class="bg-yellow-600 hover:bg-yellow-700 px-4 py-2 rounded-lg font-medium transition-colors">
+                        <i class="fas fa-plus ml-2"></i>
+                        افزودن یادداشت
+                    </button>
+                    <button onclick="editCustomer('${customer.id}')" class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg font-medium transition-colors">
+                        <i class="fas fa-edit ml-2"></i>
+                        ویرایش
+                    </button>
+                </div>
+            `;
+            
+            window.crmApp.showModal('customer-detail-modal');
+        }
+        
+        // Handle add customer form
+        async function handleAddCustomer(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const customer = {
+                firstName: formData.get('firstName'),
+                lastName: formData.get('lastName'),
+                phone: formData.get('phone'),
+                email: formData.get('email'),
+                tags: formData.get('tags') ? formData.get('tags').split(',').map(tag => tag.trim()) : [],
+                notes: []
+            };
+            
+            // Validate phone number
+            if (!window.PersianCRM.validatePhone(customer.phone)) {
+                window.PersianCRM.showToast('شماره تلفن معتبر وارد کنید', 'error');
+                return;
+            }
+            
+            try {
+                await window.PersianCRM.storage.addCustomer(customer);
+                window.PersianCRM.showToast('مشتری با موفقیت افزوده شد', 'success');
+                window.crmApp.hideModal('add-customer-modal');
+                e.target.reset();
+                
+                // Reload customers
+                await loadCustomers();
+                renderCustomers();
+            } catch (error) {
+                window.PersianCRM.showToast('خطا در افزودن مشتری', 'error');
+            }
+        }
+        
+        // Call customer
+        function callCustomer(phone) {
+            window.open(`tel:${phone}`);
+            window.PersianCRM.showToast(`در حال تماس با ${phone}`, 'info');
+        }
+        
+        // Add reminder for customer
+        function addReminder(customerId) {
+            window.PersianCRM.showToast('در حال انتقال به صفحه یادآوری‌ها...', 'info');
+            setTimeout(() => {
+                window.location.href = `reminders.html?customer=${customerId}`;
+            }, 1000);
+        }
+        
+        // Add note to customer
+        function addNote(customerId) {
+            const note = prompt('یادداشت جدید:');
+            if (note && note.trim()) {
+                // In a real app, this would update the customer record
+                window.PersianCRM.showToast('یادداشت افزوده شد', 'success');
+            }
+        }
+        
+        // Edit customer
+        function editCustomer(customerId) {
+            window.PersianCRM.showToast('قابلیت ویرایش به زودی افزوده خواهد شد', 'info');
+        }
+        
+        // Export customers
+        function exportCustomers() {
+            const data = JSON.stringify(customers, null, 2);
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `customers-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            window.PersianCRM.showToast('اطلاعات مشتریان دانلود شد', 'success');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,290 @@
+{
+  "customers": [
+    {
+      "id": "c_001",
+      "firstName": "علی",
+      "lastName": "احمدی",
+      "phone": "09123456789",
+      "email": "ali.ahmadi@example.com",
+      "tags": ["VIP", "معتبر"],
+      "createdAt": "1403-08-15",
+      "notes": [
+        {
+          "id": "n1",
+          "text": "مشتری ویژه - تخفیف 20٪",
+          "createdAt": "1403-08-15"
+        },
+        {
+          "id": "n2",
+          "text": "تماس اولیه انجام شد",
+          "createdAt": "1403-08-16"
+        }
+      ]
+    },
+    {
+      "id": "c_002",
+      "firstName": "زهرا",
+      "lastName": "محمدی",
+      "phone": "09129876543",
+      "email": "zahra.mohammadi@example.com",
+      "tags": ["جدید"],
+      "createdAt": "1403-09-20",
+      "notes": [
+        {
+          "id": "n3",
+          "text": "مشتری جدید از طریق تبلیغات اینستاگرام",
+          "createdAt": "1403-09-20"
+        }
+      ]
+    },
+    {
+      "id": "c_003",
+      "firstName": "رضا",
+      "lastName": "کریمی",
+      "phone": "09121234567",
+      "email": "reza.karimi@example.com",
+      "tags": ["عادی"],
+      "createdAt": "1403-07-10",
+      "notes": []
+    },
+    {
+      "id": "c_004",
+      "firstName": "فاطمه",
+      "lastName": "رضایی",
+      "phone": "09122345678",
+      "email": "fateme.rezaei@example.com",
+      "tags": [VIP"],
+      "createdAt": "1403-06-05",
+      "notes": [
+        {
+          "id": "n4",
+          "text": "خرید بالای 50 میلیون تومان",
+          "createdAt": "1403-06-05"
+        }
+      ]
+    },
+    {
+      "id": "c_005",
+      "firstName": "محمد",
+      "lastName": "موسوی",
+      "phone": "09123456780",
+      "email": "mohammad.mousavi@example.com",
+      "tags": ["جدید", "معتبر"],
+      "createdAt": "1403-10-01",
+      "notes": []
+    }
+  ],
+  "sales": [
+    {
+      "id": "s_001",
+      "customerId": "c_001",
+      "items": [
+        {
+          "productId": "p_001",
+          "productName": "لپ‌تاپ دل XPS 13",
+          "qty": 1,
+          "unitPrice": 45000000
+        }
+      ],
+      "total": 45000000,
+      "discount": 10,
+      "tax": 9,
+      "date": "1403-08-25",
+      "status": "completed"
+    },
+    {
+      "id": "s_002",
+      "customerId": "c_002",
+      "items": [
+        {
+          "productId": "p_002",
+          "productName": "گوشی آیفون 15 پرو",
+          "qty": 1,
+          "unitPrice": 68000000
+        },
+        {
+          "productId": "p_003",
+          "productName": "هدفون سونی WH-1000XM5",
+          "qty": 1,
+          "unitPrice": 8500000
+        }
+      ],
+      "total": 76500000,
+      "discount": 5,
+      "tax": 9,
+      "date": "1403-09-22",
+      "status": "completed"
+    },
+    {
+      "id": "s_003",
+      "customerId": "c_003",
+      "items": [
+        {
+          "productId": "p_004",
+          "productName": "تبلت سامسونگ تب S9",
+          "qty": 2,
+          "unitPrice": 32000000
+        }
+      ],
+      "total": 64000000,
+      "discount": 8,
+      "tax": 9,
+      "date": "1403-10-05",
+      "status": "pending"
+    },
+    {
+      "id": "s_004",
+      "customerId": "c_004",
+      "items": [
+        {
+          "productId": "p_005",
+          "productName": "دوربین کانن EOS R6",
+          "qty": 1,
+          "unitPrice": 95000000
+        },
+        {
+          "productId": "p_006",
+          "productName": "لنز کانن 24-70mm",
+          "qty": 1,
+          "unitPrice": 45000000
+        }
+      ],
+      "total": 140000000,
+      "discount": 15,
+      "tax": 9,
+      "date": "1403-09-15",
+      "status": "completed"
+    }
+  ],
+  "transactions": {
+    "transactions": [
+      {
+        "id": "t_001",
+        "type": "income",
+        "title": "فروش لپ‌تاپ دل",
+        "amount": 45000000,
+        "category": "فروش محصول",
+        "description": "فروش یک دستگاه لپ‌تاپ دل XPS 13 به مشتری علی احمدی",
+        "date": "1403-08-25",
+        "status": "paid"
+      },
+      {
+        "id": "t_002",
+        "type": "income",
+        "title": "فروش گوشی آیفون و هدفون",
+        "amount": 76500000,
+        "category": "فروش محصول",
+        "description": "فروش گوشی آیفون 15 پرو و هدفون سونی به زهرا محمدی",
+        "date": "1403-09-22",
+        "status": "paid"
+      },
+      {
+        "id": "t_003",
+        "type": "expense",
+        "title": "حقوق کارمندان",
+        "amount": 25000000,
+        "category": "حقوق کارمندان",
+        "description": "پرداخت حقوق ماهانه کارمندان - مهر 1403",
+        "date": "1403-09-30",
+        "status": "paid"
+      },
+      {
+        "id": "t_004",
+        "type": "expense",
+        "title": "اجاره دفتر کار",
+        "amount": 15000000,
+        "category": "اجاره محل کار",
+        "description": "پرداخت اجاره ماهانه دفتر کار - مهر 1403",
+        "date": "1403-09-01",
+        "status": "paid"
+      },
+      {
+        "id": "t_005",
+        "type": "income",
+        "title": "فروش دوربین و لنز",
+        "amount": 140000000,
+        "category": "فروش محصول",
+        "description": "فروش دوربین کانن EOS R6 و لنز 24-70mm به فاطمه رضایی",
+        "date": "1403-09-15",
+        "status": "paid"
+      },
+      {
+        "id": "t_006",
+        "type": "expense",
+        "title": "هزینه تبلیغات",
+        "amount": 8000000,
+        "category": "هزینه‌های بازاریابی",
+        "description": "هزینه تبلیغات در شبکه‌های اجتماعی - اینستاگرام",
+        "date": "1403-09-10",
+        "status": "paid"
+      },
+      {
+        "id": "t_007",
+        "type": "income",
+        "title": "خدمات مشاوره",
+        "amount": 12000000,
+        "category": "فروش خدمات",
+        "description": "درآمد از خدمات مشاوره فنی به شرکت‌های همکار",
+        "date": "1403-09-05",
+        "status": "paid"
+      },
+      {
+        "id": "t_008",
+        "type": "expense",
+        "title": "هزینه حمل و نقل",
+        "amount": 3500000,
+        "category": "هزینه‌های حمل و نقل",
+        "description": "هزینه ارسال محصولات به مشتریان",
+        "date": "1403-09-12",
+        "status": "paid"
+      }
+    ],
+    "balance": 145000000
+  },
+  "reminders": [
+    {
+      "id": "r_001",
+      "customerId": "c_001",
+      "type": "call",
+      "title": "تماس پیگیری با مشتری VIP",
+      "when": "2025-11-18T15:30:00",
+      "status": "active",
+      "notes": "پیگیری سفارش جدید و بررسی رضایت مشتری"
+    },
+    {
+      "id": "r_002",
+      "customerId": "c_002",
+      "type": "meeting",
+      "title": "قرار ملاقات فروش",
+      "when": "2025-11-19T10:00:00",
+      "status": "active",
+      "notes": "ارائه محصولات جدید و بحث درباره قرارداد سالانه"
+    },
+    {
+      "id": "r_003",
+      "customerId": "c_003",
+      "type": "task",
+      "title": "آماده‌سازی پیش‌فاکتور",
+      "when": "2025-11-17T09:00:00",
+      "status": "active",
+      "notes": "تهیه پیش‌فاکتور برای سفارش تبلت سامسونگ"
+    },
+    {
+      "id": "r_004",
+      "type": "call",
+      "title": "تماس با تامین‌کننده",
+      "when": "2025-11-20T14:00:00",
+      "status": "active",
+      "notes": "استعلام قیمت جدید محصولات و بررسی موجودی انبار"
+    },
+    {
+      "id": "r_005",
+      "customerId": "c_004",
+      "type": "meeting",
+      "title": "جلسه بررسی پروژه",
+      "when": "2025-11-21T16:00:00",
+      "status": "active",
+      "notes": "بررسی جزئیات پروژه جدید و زمان‌بندی اجرا"
+    }
+  ]
+}

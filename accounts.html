@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مدیریت مالی - CRM فارسی</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Persian Fonts -->
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vazirmatn@33.0.3/Vazirmatn-font-face.min.css" rel="stylesheet">
+    
+    <!-- Animation Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.0/dist/echarts.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+    
+    <!-- Custom Styles -->
+    <style>
+        :root {
+            --royal-blue: #1e3a8a;
+            --royal-gold: #d4af37;
+            --dark-bg: #0a0a0a;
+            --card-bg: #1f2937;
+        }
+        
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background: var(--dark-bg);
+            color: #ffffff;
+        }
+        
+        .card-royal {
+            background: var(--card-bg);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .card-royal:hover {
+            border-color: var(--royal-gold);
+            box-shadow: 0 20px 40px rgba(212, 175, 55, 0.2);
+            transform: translateY(-4px);
+        }
+        
+        .btn-royal {
+            background: linear-gradient(135deg, var(--royal-blue) 0%, #3b82f6 100%);
+            border: 1px solid var(--royal-gold);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-royal:hover {
+            background: linear-gradient(135deg, #1e40af 0%, var(--royal-blue) 100%);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .text-gold {
+            color: var(--royal-gold);
+        }
+        
+        .nav-glass {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+        }
+        
+        .transaction-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .transaction-card:hover {
+            border-color: var(--royal-gold);
+            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.2);
+        }
+        
+        .form-input {
+            background: var(--card-bg);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .form-input:focus {
+            border-color: var(--royal-gold);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+        }
+        
+        .balance-positive {
+            color: #10b981;
+        }
+        
+        .balance-negative {
+            color: #ef4444;
+        }
+        
+        .income-card {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        
+        .expense-card {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.05) 100%);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        
+        .chart-container {
+            background: rgba(31, 41, 55, 0.8);
+            border-radius: 12px;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+        
+        .category-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .category-income {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        
+        .category-expense {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+        }
+        
+        .table-row:hover {
+            background: rgba(212, 175, 55, 0.1);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Background Canvas for Particles -->
+    <div id="background-canvas"></div>
+    
+    <!-- Navigation Header -->
+    <nav class="nav-glass fixed top-0 left-0 right-0 z-40">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex items-center space-x-4">
+                    <div class="text-2xl font-bold text-gold">💎 CRM فارسی</div>
+                </div>
+                
+                <!-- Search Bar -->
+                <div class="flex-1 max-w-md mx-8">
+                    <div class="relative">
+                        <input 
+                            type="text" 
+                            id="transaction-search"
+                            placeholder="جستجوی تراکنش..."
+                            class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 pr-10 text-white placeholder-gray-400 focus:border-yellow-400 focus:outline-none"
+                        >
+                        <i class="fas fa-search absolute right-3 top-3 text-gray-400"></i>
+                    </div>
+                </div>
+                
+                <!-- Date/Time Display -->
+                <div class="flex items-center space-x-6 text-sm">
+                    <div class="text-center">
+                        <div data-persian-date class="text-gold font-medium"></div>
+                        <div data-persian-time class="text-blue-300"></div>
+                    </div>
+                    
+                    <!-- User Avatar -->
+                    <div class="flex items-center space-x-2">
+                        <img src="resources/user-avatar.jpg" alt="کاربر" class="w-8 h-8 rounded-full border-2 border-yellow-400">
+                        <span class="hidden md:block">مدیر سیستم</span>
+                    </div>
+                    
+                    <!-- Menu Toggle -->
+                    <button id="menu-toggle" class="p-2 rounded-lg hover:bg-gray-700 transition-colors">
+                        <i class="fas fa-bars text-gold"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Side Menu -->
+    <div id="side-menu" class="fixed top-0 right-0 h-full w-64 bg-gray-900 transform translate-x-full transition-transform duration-300 z-50">
+        <div class="p-4">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-bold text-gold">منو</h3>
+                <button id="menu-close" class="p-2 hover:bg-gray-700 rounded-lg">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <nav class="space-y-2">
+                <a href="index.html" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-home"></i>
+                    <span>صفحه اصلی</span>
+                </a>
+                <a href="customers.html" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-users"></i>
+                    <span>مشتریان</span>
+                </a>
+                <a href="sales.html" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-chart-line"></i>
+                    <span>فروش‌ها</span>
+                </a>
+                <a href="accounts.html" class="flex items-center space-x-3 p-3 rounded-lg bg-blue-600 text-white">
+                    <i class="fas fa-calculator"></i>
+                    <span>حساب‌ها</span>
+                </a>
+                <a href="reminders.html" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-bell"></i>
+                    <span>یادآوری‌ها</span>
+                </a>
+                <a href="dashboard.html" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>داشبورد</span>
+                </a>
+            </nav>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <main class="pt-20">
+        <!-- Page Header -->
+        <section class="py-8">
+            <div class="container mx-auto px-4">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                    <div class="mb-4 md:mb-0">
+                        <h1 class="text-3xl font-bold text-gold mb-2">
+                            <i class="fas fa-calculator ml-2"></i>
+                            مدیریت مالی
+                        </h1>
+                        <p class="text-gray-400">ثبت و پیگیری درآمدها و هزینه‌ها</p>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <!-- Add Transaction Button -->
+                        <button onclick="window.crmApp.showModal('add-transaction-modal')" class="btn-royal px-6 py-2 rounded-lg font-medium">
+                            <i class="fas fa-plus ml-2"></i>
+                            تراکنش جدید
+                        </button>
+                        
+                        <!-- Export Button -->
+                        <button onclick="exportTransactions()" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg font-medium transition-colors">
+                            <i class="fas fa-download ml-2"></i>
+                            خروجی
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Financial Summary -->
+        <section class="py-4 bg-gray-900">
+            <div class="container mx-auto px-4">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <!-- Current Balance -->
+                    <div class="card-royal p-6 rounded-xl">
+                        <div class="flex items-center">
+                            <div class="text-3xl text-gold mr-4">
+                                <i class="fas fa-wallet"></i>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-bold text-white" id="current-balance">-</div>
+                                <div class="text-gray-400 text-sm">موجودی فعلی</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Total Income -->
+                    <div class="income-card p-6 rounded-xl">
+                        <div class="flex items-center">
+                            <div class="text-3xl text-green-400 mr-4">
+                                <i class="fas fa-arrow-up"></i>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-bold text-white" id="total-income">-</div>
+                                <div class="text-gray-400 text-sm">کل درآمد</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Total Expenses -->
+                    <div class="expense-card p-6 rounded-xl">
+                        <div class="flex items-center">
+                            <div class="text-3xl text-red-400 mr-4">
+                                <i class="fas fa-arrow-down"></i>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-bold text-white" id="total-expenses">-</div>
+                                <div class="text-gray-400 text-sm">کل هزینه‌ها</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Monthly Profit -->
+                    <div class="card-royal p-6 rounded-xl">
+                        <div class="flex items-center">
+                            <div class="text-3xl text-blue-400 mr-4">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-bold text-white" id="monthly-profit">-</div>
+                                <div class="text-gray-400 text-sm">سود ماه جاری</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Charts Section -->
+        <section class="py-8">
+            <div class="container mx-auto px-4">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Income vs Expenses Chart -->
+                    <div class="chart-container p-6">
+                        <h3 class="text-xl font-semibold mb-4 text-gold">
+                            <i class="fas fa-chart-bar ml-2"></i>
+                            درآمد vs هزینه
+                        </h3>
+                        <div id="income-expense-chart" style="height: 300px;"></div>
+                    </div>
+                    
+                    <!-- Category Distribution Chart -->
+                    <div class="chart-container p-6">
+                        <h3 class="text-xl font-semibold mb-4 text-gold">
+                            <i class="fas fa-chart-pie ml-2"></i>
+                            توزیع دسته‌بندی‌ها
+                        </h3>
+                        <div id="category-chart" style="height: 300px;"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Filters Section -->
+        <section class="py-4">
+            <div class="container mx-auto px-4">
+                <div class="card-royal p-4 rounded-xl">
+                    <div class="flex flex-wrap items-center gap-4">
+                        <!-- Filter by Type -->
+                        <div class="flex items-center space-x-2">
+                            <label class="text-sm text-gray-400">نوع:</label>
+                            <select id="type-filter" class="bg-gray-800 border border-gray-600 rounded-lg px-3 py-1 text-white text-sm focus:border-yellow-400 focus:outline-none">
+                                <option value="">همه تراکنش‌ها</option>
+                                <option value="income">درآمد</option>
+                                <option value="expense">هزینه</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Filter by Category -->
+                        <div class="flex items-center space-x-2">
+                            <label class="text-sm text-gray-400">دسته‌بندی:</label>
+                            <select id="category-filter" class="bg-gray-800 border border-gray-600 rounded-lg px-3 py-1 text-white text-sm focus:border-yellow-400 focus:outline-none">
+                                <option value="">همه دسته‌بندی‌ها</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Filter by Date -->
+                        <div class="flex items-center space-x-2">
+                            <label class="text-sm text-gray-400">تاریخ:</label>
+                            <select id="date-filter" class="bg-gray-800 border border-gray-600 rounded-lg px-3 py-1 text-white text-sm focus:border-yellow-400 focus:outline-none">
+                                <option value="">همه تاریخ‌ها</option>
+                                <option value="today">امروز</option>
+                                <option value="week">این هفته</option>
+                                <option value="month">این ماه</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Clear Filters -->
+                        <button onclick="clearFilters()" class="text-yellow-400 hover:text-yellow-300 text-sm">
+                            <i class="fas fa-times ml-1"></i>
+                            پاک کردن فیلترها
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Transactions List -->
+        <section class="py-8">
+            <div class="container mx-auto px-4">
+                <div class="card-royal rounded-xl overflow-hidden">
+                    <div class="p-6 border-b border-gray-700">
+                        <h3 class="text-xl font-semibold text-gold">
+                            <i class="fas fa-list ml-2"></i>
+                            لیست تراکنش‌ها
+                        </h3>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-800">
+                                <tr>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">تاریخ</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">عنوان</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">دسته‌بندی</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">مبلغ</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">نوع</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">وضعیت</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">عملیات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transactions-table-body" class="divide-y divide-gray-700">
+                                <!-- Table rows will be dynamically generated -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Empty State -->
+                <div id="empty-state" class="hidden text-center py-12">
+                    <div class="text-6xl text-gray-600 mb-4">
+                        <i class="fas fa-calculator"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-400 mb-2">هیچ تراکنشی یافت نشد</h3>
+                    <p class="text-gray-500 mb-6">برای شروع، تراکنش جدیدی ثبت کنید</p>
+                    <button onclick="window.crmApp.showModal('add-transaction-modal')" class="btn-royal px-6 py-3 rounded-lg font-medium">
+                        <i class="fas fa-plus ml-2"></i>
+                        ثبت اولین تراکنش
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <!-- Add Transaction Modal -->
+    <div id="add-transaction-modal" class="modal fixed inset-0 modal-overlay z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="modal-content bg-gray-800 rounded-xl p-6 w-full max-w-md">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-2xl font-bold text-gold">ثبت تراکنش جدید</h3>
+                    <button class="modal-close text-gray-400 hover:text-white">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <form id="add-transaction-form" class="space-y-4">
+                    <!-- Transaction Type -->
+                    <div>
+                        <label class="block text-sm font-medium mb-2">نوع تراکنش</label>
+                        <select name="type" required class="form-input w-full rounded-lg px-3 py-2 text-white focus:outline-none" onchange="updateCategories()">
+                            <option value="">انتخاب نوع...</option>
+                            <option value="income">درآمد</option>
+                            <option value="expense">هزینه</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Title -->
+                    <div>
+                        <label class="block text-sm font-medium mb-2">عنوان</label>
+                        <input type="text" name="title" required class="form-input w-full rounded-lg px-3 py-2 text-white focus:outline-none" placeholder="مثال: فروش محصول، حقوق کارمندان">
+                    </div>
+                    
+                    <!-- Amount -->
+                    <div>
+                        <label class="block text-sm font-medium mb-2">مبلغ (تومان)</label>
+                        <input type="number" name="amount" required min="0" class="form-input w-full rounded-lg px-3 py-2 text-white focus:outline-none" placeholder="0">
+                    </div>
+                    
+                    <!-- Category -->
+                    <div>
+                        <label class="block text-sm font-medium mb-2">دسته‌بندی</label>
+                        <select name="category" required class="form-input w-full rounded-lg px-3 py-2 text-white focus:outline-none">
+                            <option value="">انتخاب دسته‌بندی...</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Description -->
+                    <div>
+                        <label class="block text-sm font-medium mb-2">توضیحات (اختیاری)</label>
+                        <textarea name="description" rows="3" class="form-input w-full rounded-lg px-3 py-2 text-white focus:outline-none" placeholder="توضیحات تکمیلی..."></textarea>
+                    </div>
+                    
+                    <!-- Status -->
+                    <div>
+                        <label class="block text-sm font-medium mb-2">وضعیت</label>
+                        <select name="status" class="form-input w-full rounded-lg px-3 py-2 text-white focus:outline-none">
+                            <option value="paid">پرداخت شده</option>
+                            <option value="pending">در انتظار</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="flex space-x-3 pt-4">
+                        <button type="submit" class="btn-royal flex-1 py-3 rounded-lg font-medium">
+                            <i class="fas fa-save ml-2"></i>
+                            ثبت تراکنش
+                        </button>
+                        <button type="button" class="modal-close bg-gray-600 flex-1 py-3 rounded-lg font-medium hover:bg-gray-500 transition-colors">
+                            انصراف
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="bg-gray-900 border-t border-gray-700 py-8">
+        <div class="container mx-auto px-4 text-center">
+            <div class="text-gold mb-2">💎 CRM فارسی - نسخه 1.0</div>
+            <div class="text-gray-400 text-sm">
+                © 1403 تمامی حقوق محفوظ است - طراحی شده با ❤️ برای کسب‌وکارهای فارسی‌زبان
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Scripts -->
+    <script src="main.js"></script>
+    
+    <script>
+        let transactions = [];
+        let filteredTransactions = [];
+        
+        // Sample categories
+        const incomeCategories = [
+            'فروش محصول',
+            'فروش خدمات',
+            'سرمایه‌گذاری',
+            'سود بانکی',
+            'سایر درآمدها'
+        ];
+        
+        const expenseCategories = [
+            'حقوق کارمندان',
+            'اجاره محل کار',
+            'هزینه‌های بازاریابی',
+            'هزینه‌های حمل و نقل',
+            'هزینه‌های اداری',
+            'هزینه‌های بیمه',
+            'مالیات',
+            'سایر هزینه‌ها'
+        ];
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', async function() {
+            await loadData();
+            initializeEventListeners();
+            renderTransactions();
+            updateFinancialSummary();
+            initializeCharts();
+        });
+        
+        // Load data from storage
+        async function loadData() {
+            try {
+                transactions = await window.PersianCRM.storage.getTransactions();
+                filteredTransactions = [...transactions];
+                
+                // Add sample transactions if none exist
+                if (transactions.length === 0) {
+                    await addSampleTransactions();
+                    transactions = await window.PersianCRM.storage.getTransactions();
+                    filteredTransactions = [...transactions];
+                }
+            } catch (error) {
+                console.error('Error loading data:', error);
+                window.PersianCRM.showToast('خطا در بارگذاری اطلاعات', 'error');
+            }
+        }
+        
+        // Add sample transactions for demo
+        async function addSampleTransactions() {
+            const sampleTransactions = [
+                {
+                    type: 'income',
+                    title: 'فروش لپ‌تاپ دل',
+                    amount: 45000000,
+                    category: 'فروش محصول',
+                    description: 'فروش یک دستگاه لپ‌تاپ دل XPS 13',
+                    status: 'paid'
+                },
+                {
+                    type: 'income',
+                    title: 'فروش گوشی آیفون',
+                    amount: 68000000,
+                    category: 'فروش محصول',
+                    description: 'فروش گوشی آیفون 15 پرو',
+                    status: 'paid'
+                },
+                {
+                    type: 'expense',
+                    title: 'حقوق کارمندان',
+                    amount: 25000000,
+                    category: 'حقوق کارمندان',
+                    description: 'پرداخت حقوق ماهانه کارمندان',
+                    status: 'paid'
+                },
+                {
+                    type: 'expense',
+                    title: 'اجاره محل کار',
+                    amount: 15000000,
+                    category: 'اجاره محل کار',
+                    description: 'پرداخت اجاره ماهانه دفتر',
+                    status: 'paid'
+                },
+                {
+                    type: 'income',
+                    title: 'خدمات مشاوره',
+                    amount: 12000000,
+                    category: 'فروش خدمات',
+                    description: 'درآمد از خدمات مشاوره فنی',
+                    status: 'paid'
+                },
+                {
+                    type: 'expense',
+                    title: 'هزینه تبلیغات',
+                    amount: 8000000,
+                    category: 'هزینه‌های بازاریابی',
+                    description: 'هزینه تبلیغات در شبکه‌های اجتماعی',
+                    status: 'paid'
+                }
+            ];
+            
+            for (const transaction of sampleTransactions) {
+                await window.PersianCRM.storage.addTransaction(transaction);
+            }
+        }
+        
+        // Initialize event listeners
+        function initializeEventListeners() {
+            // Search
+            document.getElementById('transaction-search').addEventListener('input', handleSearch);
+            
+            // Filters
+            document.getElementById('type-filter').addEventListener('change', applyFilters);
+            document.getElementById('category-filter').addEventListener('change', applyFilters);
+            document.getElementById('date-filter').addEventListener('change', applyFilters);
+            
+            // Add transaction form
+            document.getElementById('add-transaction-form').addEventListener('submit', handleAddTransaction);
+            
+            // Menu close
+            document.getElementById('menu-close').addEventListener('click', function() {
+                document.getElementById('side-menu').classList.add('translate-x-full');
+            });
+        }
+        
+        // Handle search
+        function handleSearch(e) {
+            const query = e.target.value.toLowerCase();
+            
+            if (query === '') {
+                filteredTransactions = [...transactions];
+            } else {
+                filteredTransactions = transactions.filter(transaction =>
+                    transaction.title.toLowerCase().includes(query) ||
+                    transaction.category.toLowerCase().includes(query) ||
+                    transaction.description.toLowerCase().includes(query)
+                );
+            }
+            
+            applyFilters();
+        }
+        
+        // Apply filters
+        function applyFilters() {
+            let filtered = [...filteredTransactions];
+            
+            // Type filter
+            const typeFilter = document.getElementById('type-filter').value;
+            if (typeFilter) {
+                filtered = filtered.filter(transaction => transaction.type === typeFilter);
+            }
+            
+            // Category filter
+            const categoryFilter = document.getElementById('category-filter').value;
+            if (categoryFilter) {
+                filtered = filtered.filter(transaction => transaction.category === categoryFilter);
+            }
+            
+            // Date filter
+            const dateFilter = document.getElementById('date-filter').value;
+            if (dateFilter) {
+                const now = new Date();
+                let startDate;
+                
+                switch (dateFilter) {
+                    case 'today':
+                        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                        break;
+                    case 'week':
+                        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                        break;
+                    case 'month':
+                        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+                        break;
+                }
+                
+                if (startDate) {
+                    filtered = filtered.filter(transaction => {
+                        const transactionDate = new Date(transaction.date);
+                        return transactionDate >= startDate;
+                    });
+                }
+            }
+            
+            filteredTransactions = filtered;
+            renderTransactions();
+            updateFinancialSummary();
+        }
+        
+        // Clear filters
+        function clearFilters() {
+            document.getElementById('transaction-search').value = '';
+            document.getElementById('type-filter').value = '';
+            document.getElementById('category-filter').value = '';
+            document.getElementById('date-filter').value = '';
+            
+            filteredTransactions = [...transactions];
+            renderTransactions();
+            updateFinancialSummary();
+        }
+        
+        // Render transactions table
+        function renderTransactions() {
+            const tbody = document.getElementById('transactions-table-body');
+            tbody.innerHTML = '';
+            
+            if (filteredTransactions.length === 0) {
+                document.getElementById('empty-state').classList.remove('hidden');
+                return;
+            }
+            
+            document.getElementById('empty-state').classList.add('hidden');
+            
+            filteredTransactions.forEach(transaction => {
+                const typeClass = transaction.type === 'income' ? 'category-income' : 'category-expense';
+                const typeText = transaction.type === 'income' ? 'درآمد' : 'هزینه';
+                const amountClass = transaction.type === 'income' ? 'balance-positive' : 'balance-negative';
+                
+                const row = document.createElement('tr');
+                row.className = 'table-row hover:bg-gray-800 transition-colors';
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                        ${transaction.date || 'تاریخ نامشخص'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
+                        ${transaction.title}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="category-badge ${typeClass}">
+                            ${transaction.category}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold ${amountClass}">
+                        ${window.PersianCRM.formatCurrency(transaction.amount)}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <span class="category-badge ${typeClass}">
+                            ${typeText}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                        ${transaction.status === 'paid' ? 'پرداخت شده' : 'در انتظار'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div class="flex space-x-2">
+                            <button onclick="viewTransaction('${transaction.id}')" class="text-blue-400 hover:text-blue-300">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button onclick="editTransaction('${transaction.id}')" class="text-yellow-400 hover:text-yellow-300">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="deleteTransaction('${transaction.id}')" class="text-red-400 hover:text-red-300">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+        
+        // Update financial summary
+        function updateFinancialSummary() {
+            const income = filteredTransactions
+                .filter(t => t.type === 'income' && t.status === 'paid')
+                .reduce((sum, t) => sum + t.amount, 0);
+            
+            const expenses = filteredTransactions
+                .filter(t => t.type === 'expense' && t.status === 'paid')
+                .reduce((sum, t) => sum + t.amount, 0);
+            
+            const balance = income - expenses;
+            
+            // Monthly profit (this month's transactions)
+            const currentMonth = new Date().getMonth();
+            const currentYear = new Date().getFullYear();
+            
+            const monthlyIncome = filteredTransactions
+                .filter(t => {
+                    const tDate = new Date(t.date);
+                    return t.type === 'income' && 
+                           t.status === 'paid' && 
+                           tDate.getMonth() === currentMonth && 
+                           tDate.getFullYear() === currentYear;
+                })
+                .reduce((sum, t) => sum + t.amount, 0);
+            
+            const monthlyExpenses = filteredTransactions
+                .filter(t => {
+                    const tDate = new Date(t.date);
+                    return t.type === 'expense' && 
+                           t.status === 'paid' && 
+                           tDate.getMonth() === currentMonth && 
+                           tDate.getFullYear() === currentYear;
+                })
+                .reduce((sum, t) => sum + t.amount, 0);
+            
+            const monthlyProfit = monthlyIncome - monthlyExpenses;
+            
+            document.getElementById('current-balance').textContent = 
+                window.PersianCRM.formatCurrency(balance);
+            document.getElementById('total-income').textContent = 
+                window.PersianCRM.formatCurrency(income);
+            document.getElementById('total-expenses').textContent = 
+                window.PersianCRM.formatCurrency(expenses);
+            document.getElementById('monthly-profit').textContent = 
+                window.PersianCRM.formatCurrency(monthlyProfit);
+            
+            // Update balance color
+            const balanceElement = document.getElementById('current-balance');
+            balanceElement.className = balance >= 0 ? 'text-2xl font-bold balance-positive' : 'text-2xl font-bold balance-negative';
+        }
+        
+        // Initialize charts
+        function initializeCharts() {
+            initializeIncomeExpenseChart();
+            initializeCategoryChart();
+        }
+        
+        // Initialize income vs expense chart
+        function initializeIncomeExpenseChart() {
+            const chartDom = document.getElementById('income-expense-chart');
+            const myChart = echarts.init(chartDom);
+            
+            // Generate sample data for the last 6 months
+            const months = [];
+            const incomeData = [];
+            const expenseData = [];
+            
+            for (let i = 5; i >= 0; i--) {
+                const date = new Date();
+                date.setMonth(date.getMonth() - i);
+                months.push(date.toLocaleDateString('fa-IR', { month: 'short' }));
+                
+                // Generate sample data
+                incomeData.push(50000000 + Math.random() * 30000000);
+                expenseData.push(30000000 + Math.random() * 20000000);
+            }
+            
+            const option = {
+                backgroundColor: 'transparent',
+                textStyle: {
+                    color: '#ffffff'
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    backgroundColor: '#1f2937',
+                    borderColor: '#d4af37',
+                    textStyle: {
+                        color: '#ffffff'
+                    }
+                },
+                legend: {
+                    data: ['درآمد', 'هزینه'],
+                    textStyle: {
+                        color: '#ffffff'
+                    }
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    data: months,
+                    axisLine: {
+                        lineStyle: {
+                            color: '#6b7280'
+                        }
+                    },
+                    axisLabel: {
+                        color: '#9ca3af'
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    axisLine: {
+                        lineStyle: {
+                            color: '#6b7280'
+                        }
+                    },
+                    axisLabel: {
+                        color: '#9ca3af',
+                        formatter: function(value) {
+                            return (value / 1000000).toFixed(0) + 'M';
+                        }
+                    }
+                },
+                series: [
+                    {
+                        name: 'درآمد',
+                        type: 'bar',
+                        data: incomeData,
+                        itemStyle: {
+                            color: '#10b981'
+                        }
+                    },
+                    {
+                        name: 'هزینه',
+                        type: 'bar',
+                        data: expenseData,
+                        itemStyle: {
+                            color: '#ef4444'
+                        }
+                    }
+                ]
+            };
+            
+            myChart.setOption(option);
+            
+            // Make chart responsive
+            window.addEventListener('resize', function() {
+                myChart.resize();
+            });
+        }
+        
+        // Initialize category chart
+        function initializeCategoryChart() {
+            const chartDom = document.getElementById('category-chart');
+            const myChart = echarts.init(chartDom);
+            
+            // Calculate category distribution
+            const categoryData = {};
+            
+            filteredTransactions.forEach(transaction => {
+                if (transaction.status === 'paid') {
+                    if (!categoryData[transaction.category]) {
+                        categoryData[transaction.category] = 0;
+                    }
+                    categoryData[transaction.category] += transaction.amount;
+                }
+            });
+            
+            const data = Object.entries(categoryData).map(([name, value]) => ({
+                name,
+                value
+            }));
+            
+            const option = {
+                backgroundColor: 'transparent',
+                textStyle: {
+                    color: '#ffffff'
+                },
+                tooltip: {
+                    trigger: 'item',
+                    backgroundColor: '#1f2937',
+                    borderColor: '#d4af37',
+                    textStyle: {
+                        color: '#ffffff'
+                    },
+                    formatter: function(params) {
+                        return `${params.name}: ${window.PersianCRM.formatCurrency(params.value)} (${params.percent}%)`;
+                    }
+                },
+                legend: {
+                    orient: 'vertical',
+                    left: 'left',
+                    textStyle: {
+                        color: '#ffffff'
+                    }
+                },
+                series: [
+                    {
+                        name: 'دسته‌بندی',
+                        type: 'pie',
+                        radius: '50%',
+                        data: data,
+                        emphasis: {
+                            itemStyle: {
+                                shadowBlur: 10,
+                                shadowOffsetX: 0,
+                                shadowColor: 'rgba(0, 0, 0, 0.5)'
+                            }
+                        },
+                        itemStyle: {
+                            color: function(params) {
+                                const colors = ['#d4af37', '#10b981', '#ef4444', '#3b82f6', '#8b5cf6', '#f59e0b'];
+                                return colors[params.dataIndex % colors.length];
+                            }
+                        }
+                    }
+                ]
+            };
+            
+            myChart.setOption(option);
+            
+            // Make chart responsive
+            window.addEventListener('resize', function() {
+                myChart.resize();
+            });
+        }
+        
+        // Update categories based on transaction type
+        function updateCategories() {
+            const typeSelect = document.querySelector('select[name="type"]');
+            const categorySelect = document.querySelector('select[name="category"]');
+            
+            if (typeSelect && categorySelect) {
+                const type = typeSelect.value;
+                const categories = type === 'income' ? incomeCategories : expenseCategories;
+                
+                categorySelect.innerHTML = '<option value="">انتخاب دسته‌بندی...</option>';
+                categories.forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category;
+                    option.textContent = category;
+                    categorySelect.appendChild(option);
+                });
+            }
+        }
+        
+        // Handle add transaction form
+        async function handleAddTransaction(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const transaction = {
+                type: formData.get('type'),
+                title: formData.get('title'),
+                amount: parseInt(formData.get('amount')),
+                category: formData.get('category'),
+                description: formData.get('description'),
+                status: formData.get('status')
+            };
+            
+            if (transaction.amount <= 0) {
+                window.PersianCRM.showToast('مبلغ باید بیشتر از صفر باشد', 'error');
+                return;
+            }
+            
+            try {
+                await window.PersianCRM.storage.addTransaction(transaction);
+                window.PersianCRM.showToast('تراکنش با موفقیت ثبت شد', 'success');
+                window.crmApp.hideModal('add-transaction-modal');
+                e.target.reset();
+                
+                // Reload data
+                await loadData();
+                renderTransactions();
+                updateFinancialSummary();
+                initializeCharts();
+            } catch (error) {
+                window.PersianCRM.showToast('خطا در ثبت تراکنش', 'error');
+            }
+        }
+        
+        // View transaction details
+        function viewTransaction(transactionId) {
+            window.PersianCRM.showToast('قابلیت مشاهده جزئیات به زودی افزوده خواهد شد', 'info');
+        }
+        
+        // Edit transaction
+        function editTransaction(transactionId) {
+            window.PersianCRM.showToast('قابلیت ویرایش به زودی افزوده خواهد شد', 'info');
+        }
+        
+        // Delete transaction
+        function deleteTransaction(transactionId) {
+            if (confirm('آیا مطمئن هستید که می‌خواهید این تراکنش را حذف کنید؟')) {
+                window.PersianCRM.showToast('قابلیت حذف به زودی افزوده خواهد شد', 'info');
+            }
+        }
+        
+        // Export transactions
+        function exportTransactions() {
+            const data = JSON.stringify(filteredTransactions, null, 2);
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `transactions-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            window.PersianCRM.showToast('اطلاعات تراکنش‌ها دانلود شد', 'success');
+        }
+    </script>
+</body>
+</html>
