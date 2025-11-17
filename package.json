@@ -1,0 +1,21 @@
+{
+  "name": "crm-persian",
+  "version": "1.0.0",
+  "description": "CRM Persian - packaged as Android app via Capacitor",
+  "main": "main.js",
+  "scripts": {
+    "build:web": "echo 'No build step; ensure your HTML/JS are ready in www/'",
+    "cap:init": "npx cap init 'Crm-Persian' 'com.hpuriya.crmpersian' --web-dir=www",
+    "cap:add-android": "npx cap add android",
+    "cap:copy": "npx cap copy",
+    "cap:open-android": "npx cap open android"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@capacitor/android": "^7.4.4",
+    "@capacitor/cli": "^7.4.4",
+    "@capacitor/core": "^7.4.4"
+  }
+}
