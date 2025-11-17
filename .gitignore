@@ -1,0 +1,25 @@
+# Node
+node_modules/
+
+# Android SDK and tools
+.workspaces/
+.android-sdk/
+cmdline-tools.zip
+curl-download.log
+android-build.log
+cap-*.log
+npm-*.log
+push.log
+
+# Gradle
+.gradle/
+
+# IDE
+.vscode/
+.idea/
+
+# Ignore local www copy (optional)
+www/
+
+# Ignore build outputs
+android/app/build/
